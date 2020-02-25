@@ -1,0 +1,69 @@
+package com.ensis.bloodgroup.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ensis.bloodgroup.dao.ListOfServicesDAO;
+import com.ensis.bloodgroup.dto.DonateRequestDTO;
+import com.ensis.bloodgroup.dto.OrganizationDTO;
+import com.ensis.bloodgroup.models.GetBloodRequestsModel;
+import com.ensis.bloodgroup.utis.Utilities;
+
+public class ListOfRequestsService {
+	
+	@Autowired
+	ListOfServicesDAO listOfServicesDAO;
+
+	public void setListOfServicesDAO(ListOfServicesDAO listOfServicesDAO) {
+		this.listOfServicesDAO = listOfServicesDAO;
+	}
+	
+	@Transactional
+	public List<GetBloodRequestsModel> getListOfRequests(int donorId) throws Exception {
+		List<GetBloodRequestsModel> bloodRequestObj=new ArrayList<GetBloodRequestsModel>();
+		List<?> list=listOfServicesDAO.getRequest(donorId);
+		for(int i=0;i<list.size();i++)
+		{
+			DonateRequestDTO requestObj = (DonateRequestDTO) list.get(i);
+			OrganizationDTO organizationObj=new OrganizationDTO();
+			List<?> list2=listOfServicesDAO.getRequestedOrganizationDetails(requestObj.getOrganizationid());
+			if(list2.size()>0)
+			{
+				organizationObj=(OrganizationDTO) list2.get(0);
+			}
+			GetBloodRequestsModel getBloodRequestsModel=new GetBloodRequestsModel();
+			getBloodRequestsModel.setRequestid(requestObj.getRequestid());
+			getBloodRequestsModel.setOrganizationid(requestObj.getOrganizationid());
+			getBloodRequestsModel.setDonarid(requestObj.getDonarid());
+			getBloodRequestsModel.setRequeststatusid(requestObj.getRequeststatusid());
+			getBloodRequestsModel.setBloodgroup(requestObj.getBloodgroup());
+			getBloodRequestsModel.setBloodquantity(requestObj.getBloodquantity());
+			getBloodRequestsModel.setComments(requestObj.getComments());
+			getBloodRequestsModel.setCreateddate(""+Utilities.convertDateFormat(requestObj.getCreateddate()));
+			//getBloodRequestsModel.setUpdateddate(requestObj.getUpdateddate());
+			//getBloodRequestsModel.setUserid(organizationObj.getUserid());
+			getBloodRequestsModel.setOrganizationname(organizationObj.getOrganizationname());
+			getBloodRequestsModel.setAddress1(organizationObj.getAddress1());
+			getBloodRequestsModel.setAddress2(organizationObj.getAddress2());
+			getBloodRequestsModel.setCity(organizationObj.getCity());
+			getBloodRequestsModel.setState(organizationObj.getState());
+			getBloodRequestsModel.setCountry(organizationObj.getCountry());
+			getBloodRequestsModel.setZip(organizationObj.getZip());
+			getBloodRequestsModel.setPhonenumber(organizationObj.getPhonenumber());
+			getBloodRequestsModel.setMobilenumber(organizationObj.getMobilenumber());
+			getBloodRequestsModel.setOrgdescription(organizationObj.getOrgdescription());
+			//getBloodRequestsModel.setCreteddate(organizationObj.getCreteddate());
+			bloodRequestObj.add(getBloodRequestsModel);
+			
+		}
+		return bloodRequestObj;
+	}
+
+	
+	
+	
+
+}

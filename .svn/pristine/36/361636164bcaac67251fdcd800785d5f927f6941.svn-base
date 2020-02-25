@@ -1,0 +1,431 @@
+/**
+ * 
+ */
+package com.ensis.bloodgroup.service;
+
+import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+
+import javax.imageio.ImageIO;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.ensis.bloodgroup.dao.DonarRegistrationDAO;
+import com.ensis.bloodgroup.dto.AcceptDonarsDTO;
+import com.ensis.bloodgroup.dto.DonarsDTO;
+import com.ensis.bloodgroup.dto.MedicalTestDTO;
+import com.ensis.bloodgroup.dto.UsersDTO;
+import com.ensis.bloodgroup.models.DonarAcceptRequestModel;
+import com.ensis.bloodgroup.models.DonarRegistrationModel;
+import com.ensis.bloodgroup.models.DonerMedicalTests;
+import com.ensis.bloodgroup.models.GetDonerProfileModel;
+import com.ensis.bloodgroup.models.LocationTrackingObject;
+import com.ensis.bloodgroup.models.ProfileUploadImageStatusModel;
+import com.ensis.bloodgroup.models.StatusObject;
+import com.ensis.bloodgroup.models.TrackDonarLocation;
+import com.ensis.bloodgroup.utis.GenerateGUID;
+import com.ensis.bloodgroup.utis.LatitudeAndLongitudeWithPincode;
+import com.ensis.bloodgroup.utis.MessageResources;
+
+/**
+ * @author Ensis
+ *
+ */
+public class DonarRegistrationService extends MessageResources {
+
+	@Autowired
+	DonarRegistrationDAO donarRegistrationDAO;
+
+	/**
+	 * @param donarRegistrationDAO
+	 *            the donarRegistrationDAO to set
+	 */
+	public void setDonarRegistrationDAO(
+			DonarRegistrationDAO donarRegistrationDAO) {
+		this.donarRegistrationDAO = donarRegistrationDAO;
+	}
+
+	@Transactional
+	public StatusObject donarRegistration(
+			DonarRegistrationModel donarRegistrationModel) throws Exception {
+		StatusObject statusObj = new StatusObject();
+
+		long emailResult = donarRegistrationDAO
+				.checkEmailExists(donarRegistrationModel.getEmail());
+		System.out.println(emailResult);
+
+		if (emailResult == 0) {
+			UsersDTO user = new UsersDTO();
+			user.setFirstname(donarRegistrationModel.getFirstname());
+			user.setLastname(donarRegistrationModel.getLastname());
+			user.setUsername(donarRegistrationModel.getUsername());
+			user.setEmail(donarRegistrationModel.getEmail());
+			user.setPassword(donarRegistrationModel.getPassword());
+			user.setMibile(donarRegistrationModel.getMobile());
+			user.setUsertype(1);
+			int userId = donarRegistrationDAO.insertUserObj(user);
+			if (userId == 0) {
+
+				statusObj.setError(true);
+				statusObj.setMessage(getMessage("registration.error.message"));
+				return statusObj;
+
+			} else {
+
+				DonarsDTO donar = new DonarsDTO();
+				donar.setUserid(userId);
+
+				donar.setMobilenumber(donarRegistrationModel.getMobile());
+				donar.setFirstname(donarRegistrationModel.getFirstname());
+				donar.setLastname(donarRegistrationModel.getLastname());
+
+				donar.setAddress1(donarRegistrationModel.getAddress1());
+				donar.setAddress2(donarRegistrationModel.getAddress2());
+				donar.setCity(donarRegistrationModel.getCity());
+				donar.setCountry(donarRegistrationModel.getCountry());
+				donar.setState(donarRegistrationModel.getState());
+				donar.setZip(donarRegistrationModel.getZip());
+				donar.setBloodgroup(donarRegistrationModel.getBloodgroup());
+				donar.setMobilenumber(donarRegistrationModel.getMobile());
+				donar.setAlternatemobilenumber(donarRegistrationModel
+						.getAlternatemobile());
+				donar.setGender(donarRegistrationModel.getGender());
+				donar.setAge(donarRegistrationModel.getAge());
+				donar.setImageid(donarRegistrationModel.getImageid());
+
+				donar.setCreateddate(new Date());
+
+				String address = donarRegistrationModel.getAddress1() + ","
+						+ donarRegistrationModel.getAddress2() + ""
+						+ donarRegistrationModel.getCity() + ""
+						+ donarRegistrationModel.getState() + ""
+						+ donarRegistrationModel.getZip();
+
+				String LatLang[] = LatitudeAndLongitudeWithPincode
+						.getLatLongPositions(address);
+				System.out.println(LatLang[0] + "---" + LatLang[1]);
+				donar.setDonarlatitude(LatLang[0]);
+				donar.setDonarlongitude(LatLang[1]);
+				boolean status = donarRegistrationDAO
+						.insertDonarInformation(donar);
+
+				statusObj.setError(false);
+				statusObj
+						.setMessage(getMessage("registration.success.message"));
+				return statusObj;
+
+			}
+
+		} else {
+			statusObj.setError(true);
+			statusObj.setMessage(getMessage("registration.email.exists"));
+			return statusObj;
+		}
+
+	}
+
+	@Transactional
+	public StatusObject creteDonerProfile(
+			DonarRegistrationModel donarRegistrationModel) throws Exception {
+		StatusObject obj = new StatusObject();
+		int donarid = donarRegistrationDAO
+				.DonerExistOrNot(donarRegistrationModel.getUserid());
+		if (donarid > 0) {
+
+			DonarsDTO donar = new DonarsDTO();
+			donar.setAddress1(donarRegistrationModel.getAddress1());
+			donar.setAddress2(donarRegistrationModel.getAddress2());
+			donar.setCity(donarRegistrationModel.getCity());
+			donar.setCountry(donarRegistrationModel.getCountry());
+			donar.setState(donarRegistrationModel.getState());
+			donar.setZip(donarRegistrationModel.getZip());
+			donar.setBloodgroup(donarRegistrationModel.getBloodgroup());
+			donar.setMobilenumber(donarRegistrationModel.getMobile());
+			donar.setAlternatemobilenumber(donarRegistrationModel
+					.getAlternatemobile());
+			donar.setCreateddate(new Date());
+			donar.setGender(donarRegistrationModel.getGender());
+			donar.setAge(donarRegistrationModel.getAge());
+			donar.setImageid(donarRegistrationModel.getImageid());
+
+			String address = donarRegistrationModel.getAddress1() + ","
+					+ donarRegistrationModel.getAddress2() + ""
+					+ donarRegistrationModel.getCity() + ""
+					+ donarRegistrationModel.getState() + ""
+					+ donarRegistrationModel.getZip();
+
+			String LatLang[] = LatitudeAndLongitudeWithPincode
+					.getLatLongPositions(address);
+			System.out.println(LatLang[0] + "---" + LatLang[1]);
+			donar.setDonarlatitude(LatLang[0]);
+			donar.setDonarlongitude(LatLang[1]);
+			int response = donarRegistrationDAO.createProfile(donarid, donar);
+
+			if (response > 0)
+
+			{
+				obj.setError(false);
+				obj.setMessage(getMessage("profile.success.message"));
+				return obj;
+
+			} else {
+				obj.setError(true);
+				obj.setMessage(getMessage("profile.failure.message"));
+				return obj;
+
+			}
+
+		} else {
+			obj.setError(true);
+			obj.setMessage(getMessage("profile.failure.message"));
+			return obj;
+		}
+
+	}
+
+	@Transactional
+	public StatusObject updateDonerProfile(
+			DonarRegistrationModel donarRegistrationModel) throws Exception {
+		StatusObject obj = new StatusObject();
+		int donarid = donarRegistrationDAO
+				.DonerExistOrNot(donarRegistrationModel.getUserid());
+		if (donarid > 0) {
+
+			DonarsDTO donar = new DonarsDTO();
+			donar.setAddress1(donarRegistrationModel.getAddress1());
+			donar.setAddress2(donarRegistrationModel.getAddress2());
+			donar.setCity(donarRegistrationModel.getCity());
+			donar.setCountry(donarRegistrationModel.getCountry());
+			donar.setState(donarRegistrationModel.getState());
+			donar.setZip(donarRegistrationModel.getZip());
+			donar.setBloodgroup(donarRegistrationModel.getBloodgroup());
+			// donar.setMobilenumber(donarRegistrationModel.getMobile());
+			donar.setAlternatemobilenumber(donarRegistrationModel
+					.getAlternatemobile());
+			donar.setCreateddate(new Date());
+			donar.setGender(donarRegistrationModel.getGender());
+			donar.setAge(donarRegistrationModel.getAge());
+			// donar.setImageid(donarRegistrationModel.getImageid());
+
+			String address = donarRegistrationModel.getAddress1() + ","
+					+ donarRegistrationModel.getAddress2() + ""
+					+ donarRegistrationModel.getCity() + ""
+					+ donarRegistrationModel.getState() + ""
+					+ donarRegistrationModel.getZip();
+
+			String LatLang[] = LatitudeAndLongitudeWithPincode
+					.getLatLongPositions(address);
+			System.out.println(LatLang[0] + "---" + LatLang[1]);
+			donar.setDonarlatitude(LatLang[0]);
+			donar.setDonarlongitude(LatLang[1]);
+
+			int response = donarRegistrationDAO.createProfile(donarid, donar);
+
+			for (DonerMedicalTests donerMedicalTestObj : donarRegistrationModel
+					.getMedicacltests()) {
+				MedicalTestDTO medicaltest = new MedicalTestDTO();
+				medicaltest.setMedicaltestname(donerMedicalTestObj
+						.getMedicaltestname());
+				medicaltest.setUserid(donarRegistrationModel.getUserid());
+				medicaltest.setComments(donerMedicalTestObj.getComments());
+				medicaltest
+						.setDescription(donerMedicalTestObj.getDescription());
+				medicaltest.setResult(donerMedicalTestObj.getResult());
+				medicaltest.setTestdate(new Date());
+
+				donarRegistrationDAO.insertMedicaltests(medicaltest);
+
+			}
+
+			if (response > 0)
+
+			{
+				obj.setError(false);
+				obj.setMessage(getMessage("profile.success.message"));
+				return obj;
+
+			} else {
+				obj.setError(true);
+				obj.setMessage(getMessage("profile.failure.message"));
+				return obj;
+
+			}
+
+		} else {
+			obj.setError(true);
+			obj.setMessage(getMessage("profile.failure.message"));
+			return obj;
+		}
+
+	}
+
+	@Transactional
+	public GetDonerProfileModel getDonerProfile(int donerid) {
+		return donarRegistrationDAO.getDonerProfile(donerid);
+	}
+
+	@Transactional
+	public ProfileUploadImageStatusModel profileUploadImage(MultipartFile file) {
+		ProfileUploadImageStatusModel StatusObj = new ProfileUploadImageStatusModel();
+		if (!file.isEmpty()) {
+			try {
+
+				System.out.println(file.getOriginalFilename());
+
+				String fileName = saveImgaeFileIntoDisk(file);
+				if (fileName != null) {
+
+					int imageid = donarRegistrationDAO
+							.uploadProfileImage(fileName);
+					StatusObj.setImageid(imageid);
+					StatusObj.setError(false);
+					StatusObj
+							.setMessage(getMessage("Profile.upload.success.message"));
+					return StatusObj;
+				} else {
+
+					StatusObj.setError(true);
+					StatusObj
+							.setMessage(getMessage("profile.upload.failure.message"));
+					return StatusObj;
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+
+				StatusObj.setError(true);
+				StatusObj
+						.setMessage(getMessage("profile.upload.failure.message"));
+				return StatusObj;
+			}
+		} else {
+			StatusObj.setError(true);
+			StatusObj.setMessage(getMessage("profile.upload.failure.message"));
+			return StatusObj;
+		}
+	}
+
+	@Transactional
+	public StatusObject acceptRequest(
+			DonarAcceptRequestModel donarAcceptRequestModel) {
+		StatusObject obj = new StatusObject();
+
+		int requestid = donarAcceptRequestModel.getRequestid();
+		int donarid = donarAcceptRequestModel.getDonarid();
+		int acceptStatus = donarAcceptRequestModel.getAcceptstatus();
+		if (acceptStatus == 1) {
+			acceptStatus = 2;
+			int status = donarRegistrationDAO.acceptOrRejectRequest(requestid,
+					donarid, acceptStatus);
+		}
+
+		return obj;
+
+	}
+
+	@Transactional
+	public String acceptdonarRequest(
+			DonarAcceptRequestModel donarAcceptRequestModel) {
+
+		AcceptDonarsDTO acceptdoners = new AcceptDonarsDTO();
+
+		acceptdoners.setRequeststatusid(donarAcceptRequestModel.getRequestid());
+		acceptdoners.setDonarid(donarAcceptRequestModel.getDonarid());
+		acceptdoners.setCreateddate(new Date());
+		boolean response = donarRegistrationDAO
+				.donarAcceptRequest(acceptdoners);
+
+		return null;
+	}
+
+	@Transactional
+	public LocationTrackingObject trackDonarLocation(TrackDonarLocation trackDonarLocation) {
+
+		LocationTrackingObject obj = new LocationTrackingObject();
+		int donarid = trackDonarLocation.getDonarid();
+		int status = donarRegistrationDAO.DonerExistOrNot(donarid);
+		if (status > 0) {
+			DonarsDTO donar = new DonarsDTO();
+			donar.setDonarid(trackDonarLocation.getDonarid());
+			donar.setCurrentlatitude(trackDonarLocation.getLatitude());
+			donar.setCurrentlongitude(trackDonarLocation.getLongitude());
+			int trackstatus = donarRegistrationDAO.trackLocation(donar);
+			if (trackstatus > 0) {
+				
+				return donarRegistrationDAO.getLocation(donar);
+
+				
+				//obj.setError(false);
+				//obj.setMessage(getMessage("update.loation.success"));
+				//return obj;
+			} else {
+
+				
+				return obj;
+
+			}
+		} else {
+			
+			return obj;
+		}
+
+	}
+
+	/**
+	 * 
+	 * @param file
+	 * @return
+	 */
+	@Transactional
+	public String saveImgaeFileIntoDisk(MultipartFile file) {
+
+		try {
+
+			String uuid = GenerateGUID.generateGuidValue();
+			String fileName = uuid + "_" + file.getOriginalFilename();
+			byte[] bytes = file.getBytes();
+			File savefile = new File(getMessage("imagePath") + fileName);
+			BufferedOutputStream stream = new BufferedOutputStream(
+					new FileOutputStream(savefile));
+			stream.write(bytes);
+			stream.close();
+			return fileName;
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * 
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 */
+	public byte[] getImage(String fileName) throws IOException {
+
+		InputStream inputStream = new FileInputStream(getMessage("imagePath")
+				+ fileName);
+
+		// Prepare buffered image.
+		BufferedImage img = ImageIO.read(inputStream);
+
+		// Create a byte array output stream.
+		ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+		// Write to output stream
+		ImageIO.write(img, "jpg", bao);
+		return bao.toByteArray();
+	}
+
+}

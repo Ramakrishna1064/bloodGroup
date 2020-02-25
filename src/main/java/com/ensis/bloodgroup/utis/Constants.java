@@ -1,0 +1,25 @@
+/**
+ * 
+ */
+package com.ensis.bloodgroup.utis;
+
+/**
+ * @author Ensis
+ *
+ */
+public class Constants {
+
+	public static final String FCM_SERVER_URL="https://fcm.googleapis.com/fcm/send";
+	public static final String ANDROID_GCM_API_KEY="AIzaSyBSQZMFlcLRbebJZ5L5TZ_fugLVzP31mqw";
+	public static final String IOS_GCM_API_KEY="AIzaSyCsHwLb_0xbmmIlo2cHWJZx8JR20EhulEU";
+	
+	public static final int ANDROID_DEVICE_TYPE=1;
+	public static final int iOS_DEVICE_TYPE=2;
+	
+	public static final int SENDING_REQUESTS_TYPE=1;
+	public static final int ACCEPTING_REQUEST_TYPE=2;
+	public static final int REJECT_REQUEST_TYPE=3;
+	public static final int SEND_MESSAGE_TYPE=4;
+	public static final int USER_COMPLETE_STATUS=5;
+	
+}

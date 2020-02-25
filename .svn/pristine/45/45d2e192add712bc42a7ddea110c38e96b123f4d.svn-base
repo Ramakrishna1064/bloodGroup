@@ -1,0 +1,93 @@
+#eDoctor App Titles and Messages
+
+appname=Blood Group App
+
+#Login Messages
+login.success=User Login Successfully
+login.email.password.error=Invalid UserName or Password
+
+profile.success.message=Profile updated successful
+profile.failure.message=Failure to create profile
+
+
+#Registration Messages
+registration.success.message=Registration Successful
+registration.email.exists=Email-id already exists choose another email.
+registration.error.message=Registration Failure
+
+#Profile Upload Image
+Profile.upload.success.message=Profile Image uploaded successfully.
+profile.upload.failure.message=Profile Image uploading failure. 
+
+
+device.registration.success=Device Registered Successfully
+device.registration.error=Failure to Register Device
+
+update.loation.success=location updated
+failure.update.loation=failure to update location
+
+#Request status change messages
+request.status.change.success=Request Accepted
+request.status.change.fail=Failure to Accept Request
+request.notFound=Request not found
+
+email.already.exist=email already exists
+email.doesnot.exist=email does not exist
+
+new.individual.question.posted={0} has Posted One Question to you
+notification.new.treatment.alert=1
+
+#----Local System-----------
+#imagePath=c:/BloodGroup/images/
+#imageUrlPath=http://localhost:8080/bloodgroup/getImage?fileName=
+
+#----server system-----------
+imagePath=/home/krishna/BloodGroup/images/
+imageUrlPath=http://ilovesalesevents.in:8080/bloodgroup/getImage?fileName=
+
+
+#Request status change messages
+request.notFound=This blood request is not found or expired
+unable.to.proccess.your.request=Request Already Accepted
+
+setting.an.improper.status=You can change status from only an accepted request to completed.
+
+
+request.status.complete.fail=Blood request complete fail
+request.status.complete.success=Blood request complete success
+
+invalid.bloodRequest.status=Invalid blood request status.
+
+requests.all.completed=This blood request request has completed
+requests.all.accepted=Required number of units for this blood request is already met
+
+
+request.status.acceptable.fail= Failure to accept Blood Request
+request.status.acceptable.success= Blood request accepted successfully
+request.status.rejectable.fail= Blood request reject fail
+request.status.rejectable.success= Blood request reject success
+Already.Accepted.A.Request=You are already accepted a request please complete it.
+
+
+bloodRequest.sent.success=Successfully sent blood requests.
+bloodRequest.sent.failed=No donor selected to send blood request.
+
+
+
+#Changing Password
+password.change.success=Your Password has Changed Successfully
+password.change.failure=Failure to Change Your Password
+user.not.found=User Not Found
+user.current.password.error=Current Password is wrong.
+user.new.password.empty.error=New Password shouldn't be empty 
+
+
+
+#Deleting a medical test
+medicalTest.delete.success=Medical test delete success.
+medicalTest.delete.fail=Medical test delete fail.
+medicalTest.notFound=Medical test not found.
+medicalTest.update.success=Medical test update success.
+medicalTest.update.fail=Medical test update fail.
+
+

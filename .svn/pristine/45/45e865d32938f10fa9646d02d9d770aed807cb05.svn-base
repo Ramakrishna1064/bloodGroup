@@ -1,0 +1,178 @@
+package com.ensis.bloodgroup.models;
+
+import java.util.Date;
+
+public class GetBloodRequestsModel {
+	
+	private int requestid;
+	private int organizationid;
+	//private Integer donarid;
+	private int requeststatusid;
+	private String bloodgroup;
+	private int bloodquantity;
+	private String comments;
+	private String createddate;
+	//private Date updateddate;
+	//private int userid;
+	private String organizationname;
+	private String address1;
+	private String address2;
+	private String city;
+	private String state;
+	private String country;
+	private String zip;
+	private String phonenumber;
+	private String mobilenumber;
+	private String orgdescription;
+	
+	private int donorreqid;
+	
+	
+	
+	
+	
+	public int getDonorreqid() {
+		return donorreqid;
+	}
+	public void setDonorreqid(int donorreqid) {
+		this.donorreqid = donorreqid;
+	}
+	//private Date creteddate;
+	public int getRequestid() {
+		return requestid;
+	}
+	public void setRequestid(int requestid) {
+		this.requestid = requestid;
+	}
+	public int getOrganizationid() {
+		return organizationid;
+	}
+	public void setOrganizationid(int organizationid) {
+		this.organizationid = organizationid;
+	}
+/*	public Integer getDonarid() {
+		return donarid;
+	}
+	public void setDonarid(Integer donarid) {
+		this.donarid = donarid;
+	}*/
+	public int getRequeststatusid() {
+		return requeststatusid;
+	}
+	public void setRequeststatusid(int requeststatusid) {
+		this.requeststatusid = requeststatusid;
+	}
+	public String getBloodgroup() {
+		return bloodgroup;
+	}
+	public void setBloodgroup(String bloodgroup) {
+		this.bloodgroup = bloodgroup;
+	}
+	public int getBloodquantity() {
+		return bloodquantity;
+	}
+	public void setBloodquantity(int bloodquantity) {
+		this.bloodquantity = bloodquantity;
+	}
+	public String getComments() {
+		return comments;
+	}
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+	public String getCreateddate() {
+		return createddate;
+	}
+	public void setCreateddate(String createddate) {
+		this.createddate = createddate;
+	}
+	/*public Date getUpdateddate() {
+		return updateddate;
+	}
+	public void setUpdateddate(Date updateddate) {
+		this.updateddate = updateddate;
+	}
+	public int getUserid() {
+		return userid;
+	}
+	public void setUserid(int userid) {
+		this.userid = userid;
+	}*/
+	public String getOrganizationname() {
+		return organizationname;
+	}
+	public void setOrganizationname(String organizationname) {
+		this.organizationname = organizationname;
+	}
+	public String getAddress1() {
+		return address1;
+	}
+	public void setAddress1(String address1) {
+		this.address1 = address1;
+	}
+	public String getAddress2() {
+		return address2;
+	}
+	public void setAddress2(String address2) {
+		this.address2 = address2;
+	}
+	public String getCity() {
+		return city;
+	}
+	public void setCity(String city) {
+		this.city = city;
+	}
+	public String getState() {
+		return state;
+	}
+	public void setState(String state) {
+		this.state = state;
+	}
+	public String getCountry() {
+		return country;
+	}
+	public void setCountry(String country) {
+		this.country = country;
+	}
+	public String getZip() {
+		return zip;
+	}
+	public void setZip(String zip) {
+		this.zip = zip;
+	}
+	public String getPhonenumber() {
+		return phonenumber;
+	}
+	public void setPhonenumber(String phonenumber) {
+		this.phonenumber = phonenumber;
+	}
+	public String getMobilenumber() {
+		return mobilenumber;
+	}
+	public void setMobilenumber(String mobilenumber) {
+		this.mobilenumber = mobilenumber;
+	}
+	public String getOrgdescription() {
+		return orgdescription;
+	}
+	public void setOrgdescription(String orgdescription) {
+		this.orgdescription = orgdescription;
+	}
+	/*public Date getCreteddate() {
+		return creteddate;
+	}
+	public void setCreteddate(Date creteddate) {
+		this.creteddate = creteddate;
+	}*/
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+}

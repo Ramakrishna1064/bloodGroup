@@ -1,0 +1,29 @@
+package com.ensis.bloodgroup.service.common;
+
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component("anotherBean")
+public class AnotherBean {
+	
+	@Autowired
+	CommonService commonService;
+
+	/**
+	 * @param commonService
+	 *            the commonService to set
+	 */
+	public void setCommonService(CommonService commonService) {
+		this.commonService = commonService;
+	}
+	
+	public void printAnotherMessage(){
+		System.out.println("I am called by Quartz jobBean using CronTriggerFactoryBean    "+new Date());
+		
+		commonService.updateDonorRequestTableByDeletingOldRecords();
+		
+	}
+	
+}

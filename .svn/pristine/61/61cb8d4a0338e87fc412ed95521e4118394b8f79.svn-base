@@ -1,0 +1,25 @@
+package com.ensis.bloodgroup.models;
+
+public class DisplayListOfConversationModel {
+	
+	private int type;
+	private ListOfConversationItemModel requestItem;
+	
+	
+	public int getType() {
+		return type;
+	}
+	public void setType(int type) {
+		this.type = type;
+	}
+	public ListOfConversationItemModel getRequestItem() {
+		return requestItem;
+	}
+	public void setRequestItem(ListOfConversationItemModel requestItem) {
+		this.requestItem = requestItem;
+	}
+	
+	
+	
+
+}

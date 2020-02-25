@@ -1,0 +1,171 @@
+package com.ensis.bloodgroup.models;
+
+public class AcceptedDonorsListModel {
+	private int donarid;
+	private String firstname;
+	private String lastname;
+	private String gender;
+	private String age;
+	private String address1;
+	private String address2;
+	private String city;
+	private String state;
+	private String country;
+	private String zip;
+	private String donarlatitude;
+	private String donarlongitude;
+	private String currentlatitude;
+	private String currentlongitude;
+	private String bloodgroup;
+	private String mobilenumber;
+	private String alternatemobilenumber;
+	private Integer imageid;
+	private String lastdonateddate;
+	private int donorreqid;
+	private int requestid;
+	private int requeststatus;
+	
+	
+	public int getDonarid() {
+		return donarid;
+	}
+	public void setDonarid(int donarid) {
+		this.donarid = donarid;
+	}
+	public String getFirstname() {
+		return firstname;
+	}
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+	public String getLastname() {
+		return lastname;
+	}
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+	public String getGender() {
+		return gender;
+	}
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+	public String getAge() {
+		return age;
+	}
+	public void setAge(String age) {
+		this.age = age;
+	}
+	public String getAddress1() {
+		return address1;
+	}
+	public void setAddress1(String address1) {
+		this.address1 = address1;
+	}
+	public String getAddress2() {
+		return address2;
+	}
+	public void setAddress2(String address2) {
+		this.address2 = address2;
+	}
+	public String getCity() {
+		return city;
+	}
+	public void setCity(String city) {
+		this.city = city;
+	}
+	public String getState() {
+		return state;
+	}
+	public void setState(String state) {
+		this.state = state;
+	}
+	public String getCountry() {
+		return country;
+	}
+	public void setCountry(String country) {
+		this.country = country;
+	}
+	public String getZip() {
+		return zip;
+	}
+	public void setZip(String zip) {
+		this.zip = zip;
+	}
+	public String getDonarlatitude() {
+		return donarlatitude;
+	}
+	public void setDonarlatitude(String donarlatitude) {
+		this.donarlatitude = donarlatitude;
+	}
+	public String getDonarlongitude() {
+		return donarlongitude;
+	}
+	public void setDonarlongitude(String donarlongitude) {
+		this.donarlongitude = donarlongitude;
+	}
+	public String getCurrentlatitude() {
+		return currentlatitude;
+	}
+	public void setCurrentlatitude(String currentlatitude) {
+		this.currentlatitude = currentlatitude;
+	}
+	public String getCurrentlongitude() {
+		return currentlongitude;
+	}
+	public void setCurrentlongitude(String currentlongitude) {
+		this.currentlongitude = currentlongitude;
+	}
+	public String getBloodgroup() {
+		return bloodgroup;
+	}
+	public void setBloodgroup(String bloodgroup) {
+		this.bloodgroup = bloodgroup;
+	}
+	public String getMobilenumber() {
+		return mobilenumber;
+	}
+	public void setMobilenumber(String mobilenumber) {
+		this.mobilenumber = mobilenumber;
+	}
+	public String getAlternatemobilenumber() {
+		return alternatemobilenumber;
+	}
+	public void setAlternatemobilenumber(String alternatemobilenumber) {
+		this.alternatemobilenumber = alternatemobilenumber;
+	}
+	public Integer getImageid() {
+		return imageid;
+	}
+	public void setImageid(Integer imageid) {
+		this.imageid = imageid;
+	}
+	public String getLastdonateddate() {
+		return lastdonateddate;
+	}
+	public void setLastdonateddate(String lastdonateddate) {
+		this.lastdonateddate = lastdonateddate;
+	}
+
+	public int getDonorreqid() {
+		return donorreqid;
+	}
+	public void setDonorreqid(int donorreqid) {
+		this.donorreqid = donorreqid;
+	}
+	public int getRequestid() {
+		return requestid;
+	}
+	public void setRequestid(int requestid) {
+		this.requestid = requestid;
+	}
+	public int getRequeststatus() {
+		return requeststatus;
+	}
+	public void setRequeststatus(int requeststatus) {
+		this.requeststatus = requeststatus;
+	}
+
+	
+	
+}

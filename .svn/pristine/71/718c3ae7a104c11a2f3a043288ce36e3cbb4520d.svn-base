@@ -1,0 +1,56 @@
+package com.ensis.bloodgroup.dto;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+
+@Entity
+@Table(name = "requesteddonors")
+public class RequestedDonorsListDTO {
+	
+	@Id
+	private int donorreqid;
+	
+	private int donorid;
+	private int organizationid;
+	private int requestid;
+	private int requeststatus;
+	
+	
+	public int getDonorreqid() {
+		return donorreqid;
+	}
+	public void setDonorreqid(int donorreqid) {
+		this.donorreqid = donorreqid;
+	}
+	public int getDonorid() {
+		return donorid;
+	}
+	public void setDonorid(int donorid) {
+		this.donorid = donorid;
+	}
+	public int getOrganizationid() {
+		return organizationid;
+	}
+	public void setOrganizationid(int organizationid) {
+		this.organizationid = organizationid;
+	}
+	public int getRequestid() {
+		return requestid;
+	}
+	public void setRequestid(int requestid) {
+		this.requestid = requestid;
+	}
+	public int getRequeststatus() {
+		return requeststatus;
+	}
+	public void setRequeststatus(int requeststatus) {
+		this.requeststatus = requeststatus;
+	}
+	
+	
+}

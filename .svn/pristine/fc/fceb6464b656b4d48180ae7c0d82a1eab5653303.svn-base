@@ -1,0 +1,445 @@
+package com.ensis.bloodgroup.dao;
+
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import org.hibernate.Criteria;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.transform.Transformers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.ensis.bloodgroup.dto.AcceptDonarsDTO;
+import com.ensis.bloodgroup.dto.DonarsDTO;
+import com.ensis.bloodgroup.dto.DonateRequestDTO;
+import com.ensis.bloodgroup.dto.MedicalTestDTO;
+import com.ensis.bloodgroup.dto.ProfileImageDTO;
+import com.ensis.bloodgroup.dto.UsersDTO;
+import com.ensis.bloodgroup.models.DonarHistroyModel;
+import com.ensis.bloodgroup.models.GetDonerProfileModel;
+import com.ensis.bloodgroup.models.LocationTrackingObject;
+import com.ensis.bloodgroup.utis.MessageResources;
+import com.ensis.bloodgroup.utis.Utilities;
+
+@Repository
+public class DonarRegistrationDAO extends MessageResources {
+
+	@Autowired
+	HibernateUtil hibernateUtil;
+
+	@Autowired
+	private SessionFactory sessionFactory;
+
+	/**
+	 * 
+	 * @param userOj
+	 * @return
+	 */
+	public int insertUserObj(UsersDTO userOj) {
+
+		Object obj = hibernateUtil.create(userOj);
+		if (obj != null) {
+
+			Session session = sessionFactory.getCurrentSession();
+			int userID = (Integer) session.createCriteria(UsersDTO.class)
+					.setProjection(Projections.max("userid")).uniqueResult();
+			session.flush();
+			session.clear();
+			return userID;
+
+		} else {
+
+			return 0;
+		}
+	}
+
+	/**
+	 * 
+	 * @param donarsDTO
+	 * @return
+	 */
+
+	public boolean insertDonarInformation(DonarsDTO donarsDTO) {
+
+		Object obj = hibernateUtil.create(donarsDTO);
+		if (obj != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 
+	 * @param emailId
+	 * @return
+	 */
+	public long checkEmailExists(String emailId) {
+
+		System.out.println(emailId);
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(UsersDTO.class);
+		criteria.add(Restrictions.eq("email", emailId));
+		criteria.setProjection(Projections.rowCount());
+		long count = (Long) criteria.uniqueResult();
+		session.flush();
+		session.clear();
+		System.out.println("count----" + criteria.uniqueResult());
+		return count;
+	}
+
+	/**
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	public int DonerExistOrNot(int userId) {
+		int donerid = 0;
+		try {
+
+			Session session = sessionFactory.getCurrentSession();
+			String hql = "FROM DonarsDTO d WHERE d.userid = :userid";
+			Query query = session.createQuery(hql);
+			query.setParameter("userid", userId);
+
+			List results = query.list();
+			Iterator itr = results.iterator();
+			session.flush();
+			session.clear();
+			if (itr.hasNext()) {
+				System.out.println("Doner Exist or not");
+				DonarsDTO pbliling = (DonarsDTO) itr.next();
+				donerid = pbliling.getDonarid();
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return donerid;
+	}
+
+	/**
+	 * 
+	 * @param donarid
+	 * @param donar
+	 * @return
+	 */
+	public int createProfile(int donarid, DonarsDTO donar) {
+		int response = 0;
+		Session session = sessionFactory.getCurrentSession();
+		DonarsDTO donarInfo = (DonarsDTO) session.get(DonarsDTO.class, donarid);
+		session.flush();
+		session.clear();
+		if (donarInfo != null) {
+			donarInfo.setAddress1(donar.getAddress1());
+			donarInfo.setAddress1(donar.getAddress1());
+			donarInfo.setAddress2(donar.getAddress2());
+			donarInfo.setCity(donar.getCity());
+			donarInfo.setCountry(donar.getCountry());
+			donarInfo.setState(donar.getState());
+			donarInfo.setZip(donar.getZip());
+			donarInfo.setBloodgroup(donar.getBloodgroup());
+			// donarInfo.setMobilenumber(donar.getMobilenumber());
+			donarInfo.setImageid(donar.getImageid());
+			donarInfo
+					.setAlternatemobilenumber(donar.getAlternatemobilenumber());
+			donarInfo.setAge(donar.getAge());
+			donarInfo.setGender(donar.getGender());
+			donarInfo.setState(donar.getState());
+			donarInfo.setDonarlatitude(donar.getDonarlatitude());
+			donarInfo.setDonarlongitude(donar.getDonarlongitude());
+
+			hibernateUtil.update(donarInfo);
+			response = 1;
+
+		}
+
+		return response;
+	}
+
+	/**
+	 * 
+	 * @param donerId
+	 * @return
+	 */
+	public GetDonerProfileModel getDonerProfile(int donerId) {
+		GetDonerProfileModel profile = new GetDonerProfileModel();
+
+		Session session = sessionFactory.getCurrentSession();
+		String hql = "FROM DonarsDTO d WHERE d.donarid=:donarid";
+		Query query = session.createQuery(hql);
+		query.setParameter("donarid", donerId);
+		session.flush();
+		session.clear();
+
+		List results = query.list();
+		Iterator itr = results.iterator();
+		if (itr.hasNext()) {
+
+			DonarsDTO donar = (DonarsDTO) itr.next();
+			profile.setFirstname(donar.getFirstname());
+			profile.setLastname(donar.getLastname());
+			profile.setBloodgroup(donar.getBloodgroup());
+			profile.setGender(donar.getGender());
+			profile.setAge(donar.getAge());
+			profile.setMobile(donar.getMobilenumber());
+			profile.setAlternatemobilenumber(donar.getAlternatemobilenumber());
+			profile.setCity(donar.getCity());
+			profile.setState(donar.getState());
+			profile.setCountry(donar.getCountry());
+			profile.setZip(donar.getZip());
+			profile.setAddress1(donar.getAddress1());
+			profile.setAddress2(donar.getAddress2());
+			profile.setLatitude(donar.getDonarlatitude());
+			profile.setLongitude(donar.getDonarlongitude());
+			profile.setImageUrl(getMessage("imageUrlPath")
+					+ getImageName(donar.getImageid()));
+			if (donar.getLastdonateddate() != null) {
+				profile.setLastdonateddate(""
+						+ Utilities.convertDateFormat(donar
+								.getLastdonateddate()));
+			} else {
+				profile.setLastdonateddate(null);
+			}
+
+			if (donar.getBloodgroup() == null && donar.getGender() == null) {
+				profile.setProfileCompleted(false);
+			} else {
+				profile.setProfileCompleted(true);
+
+			}
+
+		}
+
+		return profile;
+
+	}
+
+	/**
+	 * 
+	 * @param donarid
+	 * @param donar
+	 * @return
+	 */
+	public int updateProfile(int donarid, DonarsDTO donar) {
+		int response = 0;
+		Session session = sessionFactory.getCurrentSession();
+		DonarsDTO donarInfo = (DonarsDTO) session.get(DonarsDTO.class, donarid);
+		session.flush();
+		session.clear();
+		if (donarInfo != null) {
+			donarInfo.setAddress1(donar.getAddress1());
+			donarInfo.setAddress1(donar.getAddress1());
+			donarInfo.setAddress2(donar.getAddress2());
+			donarInfo.setCity(donar.getCity());
+			donarInfo.setCountry(donar.getCountry());
+			donarInfo.setState(donar.getState());
+			donarInfo.setZip(donar.getZip());
+			donarInfo.setBloodgroup(donar.getBloodgroup());
+			// donarInfo.setMobilenumber(donar.getMobilenumber());
+			donarInfo
+					.setAlternatemobilenumber(donar.getAlternatemobilenumber());
+			donarInfo.setAge(donar.getAge());
+			donarInfo.setGender(donar.getGender());
+			donarInfo.setState(donar.getState());
+
+			hibernateUtil.update(donarInfo);
+			response = 1;
+		}
+		return response;
+	}
+
+	/**
+	 * 
+	 * @param doanr
+	 * @return
+	 */
+	public int trackLocation(DonarsDTO doanr) {
+		int response = 0;
+
+		try {
+			Session session = sessionFactory.getCurrentSession();
+			DonarsDTO donarInfo = (DonarsDTO) session.get(DonarsDTO.class,
+					doanr.getDonarid());
+			donarInfo.setCurrentlatitude(doanr.getCurrentlatitude());
+			donarInfo.setCurrentlongitude(doanr.getCurrentlongitude());
+			hibernateUtil.update(donarInfo);
+			response = 1;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return response;
+
+	}
+
+	/**
+	 * 
+	 * @param donarid
+	 * @return
+	 */
+	public List<?> getDonerHistory(int donarid) {
+
+		Session session = sessionFactory.getCurrentSession();
+		SQLQuery sqlQuery = (SQLQuery) session.createSQLQuery(
+				"CALL getDonarHistory(:donarid)").setResultTransformer(
+				Transformers.aliasToBean(DonarHistroyModel.class));
+
+		sqlQuery.setParameter("donarid", donarid);
+
+		List<DonarHistroyModel> list = sqlQuery.list();
+		session.flush();
+		session.clear();
+		
+		return list;
+	}
+
+	/**
+	 * 
+	 * @param donar
+	 * @return
+	 */
+	public LocationTrackingObject getLocation(DonarsDTO donar) {
+
+		LocationTrackingObject obj = new LocationTrackingObject();
+		Session session = sessionFactory.getCurrentSession();
+		DonarsDTO donarInfo = (DonarsDTO) session.get(DonarsDTO.class,
+				donar.getDonarid());
+		donarInfo.getCurrentlatitude();
+		donarInfo.getCurrentlongitude();
+		donarInfo.getDonarlatitude();
+		donarInfo.getDonarlongitude();
+		obj.setCurrentLatitude(donarInfo.getCurrentlatitude());
+		obj.setCurrentLongitude(donarInfo.getCurrentlongitude());
+		obj.setDonarLatitude(donarInfo.getDonarlatitude());
+		obj.setDonarLongitude(donarInfo.getDonarlongitude());
+
+		return obj;
+
+	}
+
+	/**
+	 * 
+	 * @param fileName
+	 * @return
+	 */
+	public int uploadProfileImage(String fileName) {
+
+		int imgid = 0;
+		try {
+			ProfileImageDTO profileimage = new ProfileImageDTO();
+			profileimage.setImagename(fileName);
+			profileimage.setCreatedby("admin");
+			profileimage.setCreateddate(new Date());
+			hibernateUtil.create(profileimage);
+
+			Session session = sessionFactory.getCurrentSession();
+			imgid = (Integer) session.createCriteria(ProfileImageDTO.class)
+					.setProjection(Projections.max("imageid")).uniqueResult();
+			System.out.println("maxid-->" + imgid);
+			session.flush();
+			session.clear();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+
+		}
+		return imgid;
+	}
+
+	/**
+	 * 
+	 * @param requestid
+	 * @param donar
+	 * @return
+	 */
+	public int acceptOrRejectRequest(int requestid, int donarid,
+			int approvestatus) {
+		int response = 0;
+		Session session = sessionFactory.getCurrentSession();
+		DonateRequestDTO requestInfo = (DonateRequestDTO) session.get(
+				DonateRequestDTO.class, requestid);
+		session.flush();
+		session.clear();
+		if (requestInfo != null) {
+			//requestInfo.setDonarid(donarid);
+			requestInfo.setRequeststatusid(approvestatus);
+
+			hibernateUtil.update(requestInfo);
+			response = 1;
+		}
+		return response;
+	}
+
+	/**
+	 * 
+	 * @param acceptdoners
+	 * @return
+	 */
+	public boolean donarAcceptRequest(AcceptDonarsDTO acceptdoners) {
+		Object obj = hibernateUtil.create(acceptdoners);
+		if (obj != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 
+	 * @param imageid
+	 * @return
+	 */
+	public String getImageName(int imageid) {
+		String imageName = null;
+
+		try {
+
+			Session session = sessionFactory.getCurrentSession();
+			String hql = "FROM ProfileImageDTO p WHERE p.imageid = :imageid";
+			Query query = session.createQuery(hql);
+			query.setParameter("imageid", imageid);
+
+			List results = query.list();
+			Iterator itr = results.iterator();
+			session.flush();
+			session.clear();
+			if (itr.hasNext()) {
+				System.out.println("Doner Exist or not");
+				ProfileImageDTO image = (ProfileImageDTO) itr.next();
+				imageName = image.getImagename();
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return imageName;
+	}
+
+	/**
+	 * 
+	 * @param testsDto
+	 * @return
+	 */
+	public boolean insertMedicaltests(MedicalTestDTO testsDto) {
+		Session session = sessionFactory.getCurrentSession();
+		Object obj = hibernateUtil.create(testsDto);
+		session.flush();
+		session.clear();
+		if (obj != null) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+}

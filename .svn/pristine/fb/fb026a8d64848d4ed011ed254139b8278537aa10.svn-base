@@ -1,0 +1,84 @@
+/**
+ * 
+ */
+package com.ensis.bloodgroup.models;
+
+/**
+ * @author Ensis
+ *
+ */
+public class NotificationBodyModel {
+
+	private String title;
+	private String sound;
+	private String body;
+	private String bloodGroup;
+	private int donorreqid;
+	
+	
+	
+	/**
+	 * @return the bloodGroup
+	 */
+	public String getBloodGroup() {
+		return bloodGroup;
+	}
+	/**
+	 * @param bloodGroup the bloodGroup to set
+	 */
+	public void setBloodGroup(String bloodGroup) {
+		this.bloodGroup = bloodGroup;
+	}
+	/**
+	 * @return the donorreqid
+	 */
+	public int getDonorreqid() {
+		return donorreqid;
+	}
+	/**
+	 * @param donorreqid the donorreqid to set
+	 */
+	public void setDonorreqid(int donorreqid) {
+		this.donorreqid = donorreqid;
+	}
+	/**
+	 * @return the title
+	 */
+	public String getTitle() {
+		return title;
+	}
+	/**
+	 * @param title the title to set
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	/**
+	 * @return the sound
+	 */
+	public String getSound() {
+		return sound;
+	}
+	/**
+	 * @param sound the sound to set
+	 */
+	public void setSound(String sound) {
+		this.sound = sound;
+	}
+	/**
+	 * @return the body
+	 */
+	public String getBody() {
+		return body;
+	}
+	/**
+	 * @param body the body to set
+	 */
+	public void setBody(String body) {
+		this.body = body;
+	}
+
+	
+	
+	
+}

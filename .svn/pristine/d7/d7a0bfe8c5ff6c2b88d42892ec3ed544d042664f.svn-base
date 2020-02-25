@@ -1,0 +1,50 @@
+#eDoctor App Titles and Messages
+
+appname=eDoctor App
+
+#Login Messages
+login.success=User Login Successfully
+login.email.password.error=Invalid UserName or Password
+
+profile.success.message=Profile updated successful
+profile.failure.message=Failure to create profile
+
+
+#Registration Messages
+registration.success.message=Registration Successful
+registration.email.exists=Email-id already exists choose another email.
+registration.error.message=Registration Failure
+
+#Profile Upload Image
+Profile.upload.success.message=Profile Image uploaded successfully.
+profile.upload.failure.message=Profile Image uploading failure. 
+
+
+device.registration.success=Device Registered Successfully
+device.registration.error=Failure to Register Device
+
+update.loation.success=location updated
+failure.update.loation=failure to update location
+
+#Request status change messages
+request.status.change.success=Request Accepted
+request.status.change.fail=Failure to Accept Request
+request.notFound=Request not found
+
+email.already.exist=email already exists
+email.doesnot.exist=email does not exist
+
+new.individual.question.posted={0} has Posted One Question to you
+notification.new.treatment.alert=1
+
+#----Local System-----------
+#imagePath=c:/BloodGroup/images/
+#imageUrlPath=http://localhost:8080/bloodgroup/getImage?fileName=
+
+#----server system-----------
+imagePath=/home/krishna/BloodGroup/images/
+imageUrlPath=http://ilovesalesevents.in:8080/bloodgroup/getImage?fileName=
+
+
+
+

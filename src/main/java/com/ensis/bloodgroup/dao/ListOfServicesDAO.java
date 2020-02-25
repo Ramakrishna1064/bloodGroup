@@ -1,0 +1,289 @@
+package com.ensis.bloodgroup.dao;
+
+import java.util.Date;
+import java.util.List;
+
+import org.hibernate.Criteria;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.transform.Transformers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.ensis.bloodgroup.dto.DonarsDTO;
+import com.ensis.bloodgroup.dto.DonateRequestDTO;
+import com.ensis.bloodgroup.dto.MessagesDTO;
+import com.ensis.bloodgroup.dto.RequestedDonorsListDTO;
+import com.ensis.bloodgroup.dto.UsersDTO;
+
+
+@Repository
+public class ListOfServicesDAO {
+
+	
+	@Autowired
+	HibernateUtil hibernateUtil;
+
+	@Autowired
+	private SessionFactory sessionFactory;
+	
+	public List<?> getRequest(int donorId)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(RequestedDonorsListDTO.class);
+		criteria.add(Restrictions.eq("donorid", donorId));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	public List<?> getAcceptedRequest(int donorId,int status)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(RequestedDonorsListDTO.class);
+		System.out.println(donorId+"===========");
+		criteria.add(Restrictions.eq("donorid", donorId));
+		criteria.add(Restrictions.eq("requeststatus", status));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	
+	public DonateRequestDTO getRequestDetails(int reqId)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(DonateRequestDTO.class);
+		criteria.add(Restrictions.eq("requestid", reqId));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		DonateRequestDTO donateRequestDTO = null;
+		if(list.size()>0)
+		{
+			donateRequestDTO=(DonateRequestDTO) list.get(0);
+		}
+		session.flush();
+		session.clear();
+		return donateRequestDTO;
+	}
+	public List<?> getRequestedUserDetails(int acceptorId)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(DonarsDTO.class);
+		criteria.add(Restrictions.eq("userid", acceptorId));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	public int setSentDonorForUser(RequestedDonorsListDTO reqOj) {
+
+		Object obj = hibernateUtil.create(reqOj);
+		if (obj != null) {
+			Session session = sessionFactory.getCurrentSession();
+			int donorreqid = (Integer) session.createCriteria(RequestedDonorsListDTO.class).setProjection(Projections.max("donorreqid")).uniqueResult();
+			session.flush();
+			session.clear();
+			return donorreqid;
+
+		} else {
+
+			return 0;
+		}
+	}
+	public List<?> setRequestStatus(int donorreqid) {
+
+		System.out.println("..................>>>>"+donorreqid);
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(RequestedDonorsListDTO.class);
+		criteria.add(Restrictions.eq("donorreqid", donorreqid));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	public boolean updateStatus(RequestedDonorsListDTO requestedDonorsListDTO) {
+
+		boolean response = false;
+		Session session = sessionFactory.getCurrentSession();
+		RequestedDonorsListDTO rrequestedDonorsListDTO = (RequestedDonorsListDTO) session.get(RequestedDonorsListDTO.class, requestedDonorsListDTO.getDonorreqid());
+		session.flush();
+		session.clear();
+		if (rrequestedDonorsListDTO != null) {
+			rrequestedDonorsListDTO.setRequeststatus(requestedDonorsListDTO.getRequeststatus());
+			if(requestedDonorsListDTO.getRequeststatus()==5)
+			{
+				rrequestedDonorsListDTO.setRequestCompletedDate(new Date());
+			}
+			hibernateUtil.update(rrequestedDonorsListDTO);
+			response = true;
+		} else {
+			response = false;
+		}
+		return response;
+	}
+	public boolean deleteRequestedDonor(RequestedDonorsListDTO requestedDonorsListDTO){
+		
+		Session session = sessionFactory.getCurrentSession();
+		session.delete(requestedDonorsListDTO);
+		session.flush();
+		session.clear();
+		return true;
+	}
+	public List<?> getListOfAcceptedDonors(int acceptorId,int requestId)
+	{System.out.println(acceptorId+"======"+requestId);
+		Session session = sessionFactory.getCurrentSession();
+		SQLQuery sqlQuery = (SQLQuery) session
+				.createSQLQuery("CALL getListOfAcceptedDonors(:userId,:requestid)")
+				.setResultTransformer(
+				Transformers.aliasToBean(RequestedDonorsListDTO.class));
+		sqlQuery.setParameter("userId", acceptorId);
+		sqlQuery.setParameter("requestid", requestId);
+		List<?> result = sqlQuery.list();
+		session.flush();
+		session.clear();
+		System.out.println(result.size());
+		return result;
+	}
+	public List<?> getacceptedDonorDetails(int donorId)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(DonarsDTO.class);
+		criteria.add(Restrictions.eq("userid", donorId));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	
+	
+	public List<?> getListOfSentRequests(int acceptorId)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(DonateRequestDTO.class);
+		criteria.add(Restrictions.eq("userId", acceptorId));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	
+	public List<?> getListOfSentRequestsWithStatus(int acceptorId,int status)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(RequestedDonorsListDTO.class);
+		criteria.add(Restrictions.eq("userId", acceptorId));
+		criteria.add(Restrictions.eq("requeststatus", status));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	
+	
+	public int getAcceptedDonorsCountForARequest(int requestid)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(RequestedDonorsListDTO.class);
+		criteria.add(Restrictions.eq("requestid", requestid));
+		criteria.add(Restrictions.eq("requeststatus", 2));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list.size();
+	}
+	public int getCompletedDonorsCountForARequest(int requestid)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(RequestedDonorsListDTO.class);
+		criteria.add(Restrictions.eq("requestid", requestid));
+		criteria.add(Restrictions.eq("requeststatus", 5));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list.size();
+	}
+	
+	
+	public boolean updateMainRequestStatus(DonateRequestDTO donateRequestDTO) {
+
+		boolean response = false;
+		Session session = sessionFactory.getCurrentSession();
+		DonateRequestDTO donateRequestDTO2 = (DonateRequestDTO) session.get(DonateRequestDTO.class, donateRequestDTO.getRequestid());
+		session.flush();
+		session.clear();
+		if (donateRequestDTO2 != null) {
+			donateRequestDTO2.setRequeststatusid(donateRequestDTO.getRequeststatusid());;
+			hibernateUtil.update(donateRequestDTO2);
+			response = true;
+		} else {
+			response = false;
+		}
+		return response;
+	}
+	
+	public List<?> getListOfCompletedDonors(int acceptorId,int requestid)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(RequestedDonorsListDTO.class);
+		criteria.add(Restrictions.eq("userId", acceptorId));
+		criteria.add(Restrictions.eq("requestid", requestid));
+		criteria.add(Restrictions.eq("requeststatus", 5));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	
+	public int storeSentMessage(MessagesDTO message) {
+
+		Object obj = hibernateUtil.create(message);
+		if (obj != null) {
+			Session session = sessionFactory.getCurrentSession();
+			int messageId = (Integer) session.createCriteria(MessagesDTO.class).setProjection(Projections.max("messageId")).uniqueResult();
+			session.flush();
+			session.clear();
+			return messageId;
+
+		} else {
+
+			return 0;
+		}
+	}
+	
+	public List<?> getCompleteConversation(int donorreqid)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(MessagesDTO.class);
+		criteria.add(Restrictions.eq("donorreqid", donorreqid));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	
+	public boolean updateDonor(DonarsDTO userObj) {
+        Object obj = this.hibernateUtil.update(userObj);
+        if (obj != null) {
+            return true;
+        }
+        return false;
+    }
+	
+	
+	
+}

@@ -1,0 +1,51 @@
+package com.ensis.bloodgroup.dao;
+
+import java.util.List;
+
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.ensis.bloodgroup.dto.DonateRequestDTO;
+import com.ensis.bloodgroup.dto.OrganizationDTO;
+
+
+@Repository
+public class ListOfServicesDAO {
+
+	
+	@Autowired
+	HibernateUtil hibernateUtil;
+
+	@Autowired
+	private SessionFactory sessionFactory;
+	
+	public List<?> getRequest(int donorId)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(DonateRequestDTO.class);
+		criteria.add(Restrictions.eq("donarid", donorId));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	public List<?> getRequestedOrganizationDetails(int requestOrgId)
+	{
+		Session session = sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(OrganizationDTO.class);
+		criteria.add(Restrictions.eq("organizationid", requestOrgId));
+		// result will stored in list object.
+		List<?> list = criteria.list();
+		session.flush();
+		session.clear();
+		return list;
+	}
+	
+	
+	
+}

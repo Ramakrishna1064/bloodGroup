@@ -1,0 +1,24 @@
+package com.ensis.bloodgroup.models;
+
+public class ChangeRequestStatusModel {
+	private int requestid;
+	private int status;
+	
+	
+	public int getRequestid() {
+		return requestid;
+	}
+	public void setRequestid(int requestid) {
+		this.requestid = requestid;
+	}
+	public int getStatus() {
+		return status;
+	}
+	public void setStatus(int status) {
+		this.status = status;
+	}
+	
+	
+	
+
+}

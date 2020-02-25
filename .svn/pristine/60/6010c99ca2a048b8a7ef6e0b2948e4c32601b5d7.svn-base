@@ -1,0 +1,124 @@
+package com.ensis.bloodgroup.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.ensis.bloodgroup.models.AcceptedDonorsListModel;
+import com.ensis.bloodgroup.models.ChangeRequestStatusModel;
+import com.ensis.bloodgroup.models.DisplayListOfConversationModel;
+import com.ensis.bloodgroup.models.GetBloodRequestsModel;
+import com.ensis.bloodgroup.models.MessageModel;
+import com.ensis.bloodgroup.models.SentBloodRequestsModel;
+import com.ensis.bloodgroup.models.StatusObject;
+import com.ensis.bloodgroup.service.ListOfRequestsService;
+
+@Controller
+public class ListOfRequests {
+
+	@Autowired
+	ListOfRequestsService listOfRequestsService;
+
+	public void setListOfRequestsService(
+			ListOfRequestsService listOfRequestsService) {
+		this.listOfRequestsService = listOfRequestsService;
+	}
+
+	/**
+	 * 
+	 * @param donorId
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/listOfBloodRequests", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	public List<GetBloodRequestsModel> getRequestsList(
+			@RequestHeader int donorId) throws Exception {
+
+		return listOfRequestsService.getListOfRequests(donorId);
+	}
+
+	/**
+	 * 
+	 * @param changeRequestStatusModel
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/setRequestStatusFromDonor", method = RequestMethod.POST, headers = { "Content-type=application/json" }, produces = { "application/json" })
+	@ResponseBody
+	public StatusObject setRequestStatusFromDonor(
+			@RequestBody ChangeRequestStatusModel changeRequestStatusModel)
+			throws Exception {
+		System.out.println(changeRequestStatusModel.getDonorreqId());
+
+		return listOfRequestsService.setRequestStatusFromDonorService(changeRequestStatusModel);
+	}
+	
+	
+	
+	@RequestMapping(value = "/setCompletedStatusFromRecipient", method = RequestMethod.POST, headers = { "Content-type=application/json" }, produces = { "application/json" })
+	@ResponseBody
+	public StatusObject setCompletedStatusFromRecipient(@RequestBody ChangeRequestStatusModel changeRequestStatusModel)throws Exception {
+		return listOfRequestsService.setCompletedStatusFromRecipient(changeRequestStatusModel);
+	}
+	
+	
+	@RequestMapping(value = "/getAcceptedDonorsList", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	public List<AcceptedDonorsListModel> getAcceptedDonorsList(@RequestHeader int userId,@RequestHeader int requestId) throws Exception {
+		System.out.println(userId);
+
+		return listOfRequestsService.getAcceptedDonorsListService(userId,requestId);
+	}
+	
+	
+	@RequestMapping(value = "/getSentRequestsList", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	public List<SentBloodRequestsModel> getSentRequestsList(@RequestHeader int userId) throws Exception {
+		System.out.println(userId);
+
+		return listOfRequestsService.getSentRequestsListService(userId);
+	}
+	
+	@RequestMapping(value = "/getAcceptedRequestItem", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	public GetBloodRequestsModel getAcceptedRequestItem(@RequestHeader int donorId) throws Exception {
+		System.out.println(donorId);
+
+		return listOfRequestsService.getAcceptedRequestItemService(donorId);
+	}
+	
+	@RequestMapping(value = "/sendMessageToPerson", method = RequestMethod.POST, headers = { "Content-type=application/json" }, produces = { "application/json" })
+	@ResponseBody
+	public StatusObject sendMessageToPerson(@RequestBody MessageModel messageModel) throws Exception {
+	
+		return listOfRequestsService.sendMessageToPersonService(messageModel);
+	}
+	
+	@RequestMapping(value = "/getConversation", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	public List<MessageModel> getConversation(@RequestHeader int donorreqid) throws Exception {
+		System.out.println(donorreqid);
+
+		return listOfRequestsService.getConversationService(donorreqid);
+	}
+	
+	@RequestMapping(value = "/getRequestsForConversation", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	public List<DisplayListOfConversationModel> getRequestsForConversation(@RequestHeader int userId) throws Exception {
+		System.out.println(userId);
+
+		return listOfRequestsService.getRequestsForConversationService(userId);
+	}
+	
+
+	
+	
+	
+}

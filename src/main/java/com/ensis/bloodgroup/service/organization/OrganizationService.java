@@ -1,0 +1,270 @@
+/**
+ * 
+ */
+package com.ensis.bloodgroup.service.organization;
+
+import java.util.ArrayList;
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ensis.bloodgroup.dao.DonarRegistrationDAO;
+import com.ensis.bloodgroup.dao.organization.OrganizationDAO;
+import com.ensis.bloodgroup.dto.DonarsDTO;
+import com.ensis.bloodgroup.dto.MessagesDTO;
+import com.ensis.bloodgroup.dto.NotificationDTO;
+import com.ensis.bloodgroup.dto.OrganizationDTO;
+import com.ensis.bloodgroup.dto.UsersDTO;
+import com.ensis.bloodgroup.models.BloodDonateRequestModel;
+import com.ensis.bloodgroup.models.OrgnizationRegistrationMoel;
+import com.ensis.bloodgroup.models.StatusObject;
+import com.ensis.bloodgroup.models.TrackDonarLocation;
+import com.ensis.bloodgroup.models.UserNotificationModel;
+import com.ensis.bloodgroup.service.common.NotifcationService;
+import com.ensis.bloodgroup.utis.Constants;
+import com.ensis.bloodgroup.utis.MessageResources;
+
+/**
+ * @author Ensis
+ *
+ */
+public class OrganizationService extends MessageResources {
+
+	@Autowired
+	OrganizationDAO organizationDAO;
+
+	@Autowired
+	DonarRegistrationDAO donarRegistrationDAO;
+
+	@Autowired
+	NotifcationService notifcationService;
+
+	/**
+	 * @return the organizationDAO
+	 */
+	public OrganizationDAO getOrganizationDAO() {
+		return organizationDAO;
+	}
+
+	/**
+	 * @param organizationDAO
+	 *            the organizationDAO to set
+	 */
+	public void setOrganizationDAO(OrganizationDAO organizationDAO) {
+		this.organizationDAO = organizationDAO;
+	}
+
+	@Transactional
+	public StatusObject donarRegistration(
+			OrgnizationRegistrationMoel orgnizationRegistrationMoel) {
+		StatusObject statusObj = new StatusObject();
+
+		long emailResult = donarRegistrationDAO
+				.checkEmailExists(orgnizationRegistrationMoel.getEmail());
+		System.out.println(emailResult);
+
+		if (emailResult == 0) {
+			UsersDTO user = new UsersDTO();
+			user.setFirstname(orgnizationRegistrationMoel.getFirstname());
+			user.setLastname(orgnizationRegistrationMoel.getLastname());
+			user.setUsername(orgnizationRegistrationMoel.getUsername());
+			user.setEmail(orgnizationRegistrationMoel.getEmail());
+			user.setPassword(orgnizationRegistrationMoel.getPassword());
+			user.setMibile(orgnizationRegistrationMoel.getMobile());
+			user.setIsActive(orgnizationRegistrationMoel.getUsertype());
+			int userId = donarRegistrationDAO.insertUserObj(user);
+			if (userId == 0) {
+
+				statusObj.setError(true);
+				statusObj.setMessage(getMessage("registration.error.message"));
+				return statusObj;
+
+			} else {
+
+				OrganizationDTO organization = new OrganizationDTO();
+				organization.setUserid(userId);
+				organization.setAddress1(orgnizationRegistrationMoel
+						.getAddress1());
+				organization.setAddress2(orgnizationRegistrationMoel
+						.getAddress2());
+				organization.setCity(orgnizationRegistrationMoel.getCity());
+				organization.setCountry(orgnizationRegistrationMoel
+						.getCountry());
+				organization.setState(orgnizationRegistrationMoel.getState());
+				organization.setZip(orgnizationRegistrationMoel.getZip());
+				organization.setMobilenumber(orgnizationRegistrationMoel
+						.getMobile());
+				organization.setOrganizationname(orgnizationRegistrationMoel
+						.getOrganizationname());
+				organization.setOrgdescription(orgnizationRegistrationMoel
+						.getOrgdescription());
+
+				boolean status = organizationDAO
+						.insertOrganizationInformation(organization);
+				statusObj.setError(false);
+				statusObj
+						.setMessage(getMessage("registration.success.message"));
+				return statusObj;
+
+			}
+
+		} else {
+			statusObj.setError(true);
+			statusObj.setMessage(getMessage("registration.email.exists"));
+			return statusObj;
+		}
+
+	}
+
+	@Transactional
+	public StatusObject sendDonarRequests(
+			BloodDonateRequestModel bloodDonateRequestModel) {
+		StatusObject statusObj = new StatusObject();
+
+		return null;
+	}
+
+	@Transactional
+	public StatusObject registerUserDevice(
+			UserNotificationModel userNotificationModel) {
+
+		StatusObject statusObject = new StatusObject();
+		
+		
+		if (userNotificationModel != null) {
+
+			if (organizationDAO.userExistOrNor(userNotificationModel.getUserId()) > 0) {
+
+				NotificationDTO notification = new NotificationDTO();
+				notification.setUserid(userNotificationModel.getUserId());
+				notification.setDeviceid(userNotificationModel.getDeviceId());
+				notification.setDevicetype(userNotificationModel.getDeviceType());
+				notification.setGcmid(userNotificationModel.getGcmId());
+				notification.setNotificationenable(true);
+				notification.setCreatedby(""+ userNotificationModel.getUserId());
+				notification.setCreateddate(new Date());
+
+				boolean status = organizationDAO.saveUserNotificationObj(notification);
+
+				if (status) {
+					statusObject.setError(false);
+					statusObject.setMessage(getMessage("device.registration.success"));
+					return statusObject;
+				} else {
+					statusObject.setError(true);
+					statusObject.setMessage(getMessage("device.registration.error"));
+					return statusObject;
+				}
+
+			} else {
+				statusObject.setError(true);
+				statusObject
+						.setMessage(getMessage("device.registration.error"));
+				return statusObject;
+			}
+
+		} else {
+			statusObject.setError(true);
+			statusObject.setMessage(getMessage("device.registration.error"));
+			return statusObject;
+
+		}
+
+	}
+
+	@Transactional
+	public void notifyBloodRequest(int userId, int donorId,String bloodgroup, int bloodQuantity,int donorreqid) {
+
+		try {
+
+			System.out.println("-- UserId------------------------------------>" + userId);
+			
+			ArrayList<NotificationDTO> devicesList = organizationDAO.getUserDeviceInfo(donorId);
+			
+			System.out.println("--devicesList UserId--->" + devicesList.size());
+			
+			DonarsDTO donars = organizationDAO.getUserInformation(userId);
+			String name = donars.getFirstname()+" "+donars.getLastname()+ " wants " + bloodgroup+ " blood group.";
+			//String name = donars.getFirstname()+" "+donars.getLastname()+ " wants " + bloodgroup+ " BloodGroup " + bloodQuantity;
+			System.out.println("--name user notfication--->" + name);
+			int requestId=organizationDAO.getRequestMainId(donorreqid);
+			notifcationService.sendNewQuestionNotification(requestId,name, devicesList,bloodgroup,donorreqid,Constants.SENDING_REQUESTS_TYPE);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+	
+	
+	@Transactional
+	public void notifyAcceptedBloodRequest(int status,int userId,int donarId, String bloodgroup,int donorreqid) {
+
+		try {
+			String name=null;
+			System.out.println("-- userId--->" + userId);
+			System.out.println("-- donorId--->" + donarId);
+			
+			ArrayList<NotificationDTO> devicesList = organizationDAO.getUserDeviceInfo(userId);
+			
+			System.out.println("--devicesList UserId--->" + devicesList.size());
+			int requestId=organizationDAO.getRequestMainId(donorreqid);
+			DonarsDTO donars = organizationDAO.getUserInformation(donarId);
+			if(status==2)
+			{
+				name = donars.getFirstname()+" "+donars.getLastname()+ " accepted your " + bloodgroup+ " blood group request.";
+				notifcationService.sendNewQuestionNotification(requestId,name, devicesList,bloodgroup,donorreqid,Constants.ACCEPTING_REQUEST_TYPE);
+			}
+			else
+			{
+				name = donars.getFirstname()+" "+donars.getLastname()+ " rejected your " + bloodgroup+ " blood group request.";
+				notifcationService.sendNewQuestionNotification(requestId,name, devicesList,bloodgroup,donorreqid,Constants.REJECT_REQUEST_TYPE);
+			}
+
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+	
+	
+	@Transactional
+	public void messageNotification(MessagesDTO message) {
+
+		try {
+
+			ArrayList<NotificationDTO> devicesList = organizationDAO.getUserDeviceInfo(message.getMessageRecieverId());
+			
+			System.out.println("--devicesList UserId--->" + devicesList.size());
+			
+			DonarsDTO donars = organizationDAO.getUserInformation(message.getMessageSenderId());
+			String name = donars.getFirstname()+" "+donars.getLastname()+ " sent a message.";
+			
+			notifcationService.sendMessageNotification(name, devicesList,message,Constants.SEND_MESSAGE_TYPE);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+	
+	
+/*	
+	@Transactional
+	public void notifyDonorLocationToUser(TrackDonarLocation trackDonarLocation) {
+
+		try {
+			ArrayList<NotificationDTO> devicesList = organizationDAO.getUserDeviceInfo(organizationDAO.getUserIdInAcceptedRequest(trackDonarLocation.getDonarId()));
+			
+			System.out.println("--devicesList UserId--->" + devicesList.size());
+			
+			String name = "Donor current location";
+			
+			System.out.println("--name user notfication--->" + name);
+			
+			notifcationService.sendDonorLocationDetails(name, devicesList,trackDonarLocation);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}*/
+	
+	
+
+}

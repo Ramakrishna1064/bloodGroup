@@ -1,0 +1,13 @@
+#eDoctor App Titles and Messages
+
+appname=eDoctor App
+
+#Login Messages
+login.success=User Login Successfully
+login.email.password.error=Invalid UserName or Password
+
+
+#Registration Messages
+registration.success.message=Registration Successful
+registration.email.exists=Email-id already exists choose another email.
+registration.error.message=Registration Failure

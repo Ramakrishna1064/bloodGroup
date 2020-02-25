@@ -1,0 +1,66 @@
+package com.ensis.bloodgroup.models;
+
+import java.util.Date;
+
+public class SentBloodRequestsModel {
+	private int requestid;
+	private int organizationid;
+	
+	private int requeststatusid;
+	private String bloodgroup;
+	private int bloodquantity;
+	private String datebloodrequired;
+	private String comments;
+	private String createddate;
+	
+	public int getRequestid() {
+		return requestid;
+	}
+	public void setRequestid(int requestid) {
+		this.requestid = requestid;
+	}
+	public int getOrganizationid() {
+		return organizationid;
+	}
+	public void setOrganizationid(int organizationid) {
+		this.organizationid = organizationid;
+	}
+	public int getRequeststatusid() {
+		return requeststatusid;
+	}
+	public void setRequeststatusid(int requeststatusid) {
+		this.requeststatusid = requeststatusid;
+	}
+	public String getBloodgroup() {
+		return bloodgroup;
+	}
+	public void setBloodgroup(String bloodgroup) {
+		this.bloodgroup = bloodgroup;
+	}
+	public int getBloodquantity() {
+		return bloodquantity;
+	}
+	public void setBloodquantity(int bloodquantity) {
+		this.bloodquantity = bloodquantity;
+	}
+	public String getDatebloodrequired() {
+		return datebloodrequired;
+	}
+	public void setDatebloodrequired(String datebloodrequired) {
+		this.datebloodrequired = datebloodrequired;
+	}
+	public String getComments() {
+		return comments;
+	}
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+	public String getCreateddate() {
+		return createddate;
+	}
+	public void setCreateddate(String createddate) {
+		this.createddate = createddate;
+	}
+	
+
+}

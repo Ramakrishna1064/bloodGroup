@@ -1,0 +1,444 @@
+/**
+ * 
+ */
+package com.ensis.bloodgroup.service.common;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ensis.bloodgroup.dao.DonarRegistrationDAO;
+import com.ensis.bloodgroup.dao.ListOfServicesDAO;
+import com.ensis.bloodgroup.dao.common.CommonDAO;
+import com.ensis.bloodgroup.dao.organization.OrganizationDAO;
+import com.ensis.bloodgroup.dto.DonarsDTO;
+import com.ensis.bloodgroup.dto.DonateRequestDTO;
+import com.ensis.bloodgroup.dto.MedicalTestDTO;
+import com.ensis.bloodgroup.dto.NotificationDTO;
+import com.ensis.bloodgroup.dto.RequestedDonorsListDTO;
+import com.ensis.bloodgroup.dto.UsersDTO;
+import com.ensis.bloodgroup.models.DonarLoginStatusModel;
+import com.ensis.bloodgroup.models.DonerMedicalTests;
+import com.ensis.bloodgroup.models.GetSearchDonresList;
+import com.ensis.bloodgroup.models.NotifyUserRequestStatusModel;
+import com.ensis.bloodgroup.models.RequiredDonorToSendRequestModel;
+import com.ensis.bloodgroup.models.StatusObject;
+import com.ensis.bloodgroup.service.DonarRegistrationService;
+import com.ensis.bloodgroup.service.organization.OrganizationService;
+import com.ensis.bloodgroup.utis.Constants;
+import com.ensis.bloodgroup.utis.DistanceCalculator;
+import com.ensis.bloodgroup.utis.MessageResources;
+import com.ensis.bloodgroup.utis.Utilities;
+
+/**
+ * @author Ensis
+ *
+ */
+public class CommonService extends MessageResources {
+
+	@Autowired
+	CommonDAO commonDAO;
+
+	@Autowired
+	DonarRegistrationDAO donarRegistrationDAO;
+
+	@Autowired
+	NotifcationService notifcationService;
+
+	@Autowired
+	OrganizationService organizationService;
+
+	@Autowired
+	DonarRegistrationService donarRegistrationService;
+
+	@Autowired
+	ListOfServicesDAO listOfServicesDAO;
+	
+	@Autowired
+	OrganizationDAO organizationDAO;
+	
+	
+	
+
+	/**
+	 * @param organizationDAO the organizationDAO to set
+	 */
+	public void setOrganizationDAO(OrganizationDAO organizationDAO) {
+		this.organizationDAO = organizationDAO;
+	}
+
+	public void setListOfServicesDAO(ListOfServicesDAO listOfServicesDAO) {
+		this.listOfServicesDAO = listOfServicesDAO;
+	}
+
+	/**
+	 * @return the commonDAO
+	 */
+	public CommonDAO getCommonDAO() {
+		return commonDAO;
+	}
+
+	/**
+	 * @param commonDAO
+	 *            the commonDAO to set
+	 */
+	public void setCommonDAO(CommonDAO commonDAO) {
+		this.commonDAO = commonDAO;
+	}
+
+	@Transactional
+	public DonarLoginStatusModel validateDonorLogin(UsersDTO user) {
+
+		List list = commonDAO.validateUserLogin(user.getEmail(),
+				user.getPassword(), 1);
+		DonarLoginStatusModel statusObj = new DonarLoginStatusModel();
+		if (list.size() > 0) {
+
+			statusObj.setError(false);
+			UsersDTO userObj = (UsersDTO) list.get(0);
+
+			statusObj.setMessage(getMessage("login.success"));
+			// get the Patient Id whoever login
+			List userIdResult = commonDAO
+					.getPatientLoginUserId(user.getEmail());
+			UsersDTO patientRegistration = (UsersDTO) userIdResult.get(0);
+			// set the Id to Status Obj
+
+			statusObj.setUserid(patientRegistration.getUserid());
+			return statusObj;
+
+		} else {
+			statusObj.setError(true);
+
+			statusObj.setMessage(getMessage("login.email.password.error"));
+			return statusObj;
+		}
+
+	}
+
+	@Transactional
+	public List<?> getDonersListDistanceCalculation(int userId,
+			String latitude, String longitude, String bloodGroup,
+			int bloodQuantity, String datebloodrequired) {
+
+		System.out.println(datebloodrequired);
+
+		List<?> list = commonDAO.getDonersList(bloodGroup,
+				Utilities.getDateAndTimeFormat(datebloodrequired));
+
+		List<GetSearchDonresList> searchList = new ArrayList<GetSearchDonresList>();
+		System.out.println(list.size());
+		for (int i = 0; i < list.size(); i++) {
+
+			DonarsDTO donar = (DonarsDTO) list.get(i);
+
+			String donarLatitude = donar.getDonarlatitude();
+			String donarLongitude = donar.getDonarlongitude();
+
+			Double distanceInKilometes = DistanceCalculator.distance(
+					Double.parseDouble(donarLatitude),
+					Double.parseDouble(donarLongitude),
+					Double.parseDouble(latitude),
+					Double.parseDouble(longitude), "K");
+
+			System.out.println("distnace----" + distanceInKilometes);
+
+			if (distanceInKilometes <= 2) {
+
+				// if (requestId > 0) {
+				GetSearchDonresList donerModel = new GetSearchDonresList();
+				ArrayList<DonerMedicalTests> medicacltests = new ArrayList<DonerMedicalTests>();
+				donerModel.setEmail(commonDAO.getEmailIdByUserID(donar
+						.getUserid()));
+				// donerModel.setUserid(donar.getUserid());
+				donerModel.setDonarid(donar.getUserid());
+				donerModel.setFirstname(donar.getFirstname());
+				donerModel.setLastname(donar.getLastname());
+				donerModel.setGender(donar.getGender());
+				donerModel.setAge(donar.getAge());
+				donerModel.setAddress1(donar.getAddress1());
+				donerModel.setAddress2(donar.getAddress2());
+				donerModel.setCity(donar.getCity());
+				donerModel.setState(donar.getState());
+				donerModel.setCountry(donar.getCountry());
+				donerModel.setZip(donar.getZip());
+				donerModel.setLatitude(donar.getDonarlatitude());
+				donerModel.setLongitude(donar.getDonarlongitude());
+				donerModel.setBloodgroup(donar.getBloodgroup());
+				donerModel.setProfileImageURL(getMessage("imageUrlPath")
+						+ donar.getProfileImageUUID());
+				donerModel.setMobilenumber(donar.getMobilenumber());
+				donerModel.setAlternatemobilenumber(donar
+						.getAlternatemobilenumber());
+				donerModel.setCreateddate(""
+						+ Utilities.convertDateAndTimeFormat(donar
+								.getCreateddate()));
+
+				ArrayList<MedicalTestDTO> medicalTests = commonDAO
+						.getMedicalTest(donar.getUserid());
+				System.out.println("size--" + medicalTests.size());
+				for (MedicalTestDTO dto : medicalTests) {
+					DonerMedicalTests test = new DonerMedicalTests();
+					test.setComments(dto.getComments());
+					test.setMedicaltestname(dto.getMedicaltestname());
+					test.setResult(dto.getResult());
+					test.setDescription(dto.getDescription());
+					test.setTestdate(""
+							+ Utilities.convertDateAndTimeFormat(dto
+									.getTestdate()));
+					test.setMedicaltestid(dto.getMedicaltestid());
+					medicacltests.add(test);
+				}
+				donerModel.setMedicacltests(medicacltests);
+				if (donar.getUserid() != userId) {
+					searchList.add(donerModel);
+				}
+
+			}
+
+		}
+
+		return searchList;
+
+	}
+
+	@Transactional
+	public StatusObject sendRequestsToTheDonors(
+			RequiredDonorToSendRequestModel requiredDonorToSendRequestModel) {
+
+		DonateRequestDTO donate = new DonateRequestDTO();
+
+		// donate.setDonarid(null);
+		donate.setBloodgroup(requiredDonorToSendRequestModel.getBloodGroup());
+		donate.setRequeststatusid(1);
+		donate.setUserId(requiredDonorToSendRequestModel.getUserId());
+		donate.setBloodquantity(requiredDonorToSendRequestModel
+				.getBloodQuantity());
+		donate.setDatebloodrequired(Utilities
+				.getDateAndTimeFormat(requiredDonorToSendRequestModel
+						.getDateBloodRequired()));
+		donate.setCreateddate(new Date());
+		int requestId = commonDAO.donateRequest(donate);
+
+		StatusObject statusObject = new StatusObject();
+		if (requestId > 0) {
+
+			List<?> list = commonDAO
+					.getDonersList(
+							requiredDonorToSendRequestModel.getBloodGroup(),
+							Utilities
+									.getDateAndTimeFormat(requiredDonorToSendRequestModel
+											.getDateBloodRequired()));
+			ArrayList<Integer> donorIdsList = new ArrayList<Integer>();
+
+			System.out.println("=================list==============="
+					+ list.size());
+
+			if (requiredDonorToSendRequestModel.getLatitude() != null
+					&& requiredDonorToSendRequestModel.getLongitude() != null) {
+				for (int k = 0; k < list.size(); k++) {
+					System.out
+							.println("=================donorIdsList==============="
+									+ donorIdsList.size());
+					DonarsDTO donar = (DonarsDTO) list.get(k);
+					String donarLatitude = donar.getDonarlatitude();
+					String donarLongitude = donar.getDonarlongitude();
+					Double distanceInKilometes = DistanceCalculator.distance(
+							Double.parseDouble(donarLatitude), Double
+									.parseDouble(donarLongitude),
+							Double.parseDouble(requiredDonorToSendRequestModel
+									.getLatitude()),
+							Double.parseDouble(requiredDonorToSendRequestModel
+									.getLongitude()), "K");
+
+					if (distanceInKilometes <= 2) {
+						if (requiredDonorToSendRequestModel.getUserId() != donar
+								.getUserid()) {
+							donorIdsList.add(donar.getUserid());
+						}
+					}
+
+				}
+				System.out
+						.println("=================donorIdsList==============="
+								+ donorIdsList.size());
+			} else {
+				for (int k = 0; k < list.size(); k++) {
+					DonarsDTO donar = (DonarsDTO) list.get(k);
+					if (requiredDonorToSendRequestModel.getUserId() != donar
+							.getUserid()) {
+						donorIdsList.add(donar.getUserid());
+					}
+
+				}
+			}
+
+			if (donorIdsList != null && donorIdsList.size() > 0) {
+
+				for (int i = 0; i < donorIdsList.size(); i++) {
+					System.out.println("=========================="
+							+ donorIdsList.get(i));
+					RequestedDonorsListDTO requestedDonor = new RequestedDonorsListDTO();
+
+					requestedDonor.setDonorid(donorIdsList.get(i));
+					requestedDonor.setUserId(requiredDonorToSendRequestModel
+							.getUserId());
+					requestedDonor.setRequestid(requestId);
+					requestedDonor.setRequeststatus(1);
+
+					int donorreqid = listOfServicesDAO
+							.setSentDonorForUser(requestedDonor);
+					organizationService.notifyBloodRequest(requiredDonorToSendRequestModel.getUserId(),donorIdsList.get(i),
+							requiredDonorToSendRequestModel.getBloodGroup(),
+							requiredDonorToSendRequestModel.getBloodQuantity(),
+							donorreqid);
+				}
+				statusObject.setError(false);
+				statusObject
+						.setMessage(getMessage("bloodRequest.sent.success"));
+				return statusObject;
+
+			} else {
+				statusObject.setError(true);
+				statusObject.setMessage(getMessage("bloodRequest.sent.failed"));
+				return statusObject;
+			}
+		} else {
+			statusObject.setError(true);
+			statusObject.setMessage(getMessage("bloodRequest.sent.failed"));
+			return statusObject;
+		}
+	}
+
+	@Transactional
+	public List<GetSearchDonresList> getDonaresListWithOutDistance(int userId,
+			String bloodGroup, int bloodQuantity, String datebloodrequired) {
+		System.out.println(datebloodrequired);
+
+		List<?> list = commonDAO.getDonersList(bloodGroup,
+				Utilities.getDateAndTimeFormat(datebloodrequired));
+		List<GetSearchDonresList> searchList = new ArrayList<GetSearchDonresList>();
+		System.out.println(list.size());
+		for (int i = 0; i < list.size(); i++) {
+
+			DonarsDTO donar = (DonarsDTO) list.get(i);
+
+			// if (requestId > 0) {
+			GetSearchDonresList donerModel = new GetSearchDonresList();
+			ArrayList<DonerMedicalTests> medicacltests = new ArrayList<DonerMedicalTests>();
+			donerModel
+					.setEmail(commonDAO.getEmailIdByUserID(donar.getUserid()));
+			// donerModel.setUserid(donar.getUserid());
+			donerModel.setDonarid(donar.getUserid());
+			donerModel.setFirstname(donar.getFirstname());
+			donerModel.setLastname(donar.getLastname());
+			donerModel.setGender(donar.getGender());
+			donerModel.setAge(donar.getAge());
+			donerModel.setAddress1(donar.getAddress1());
+			donerModel.setAddress2(donar.getAddress2());
+			donerModel.setCity(donar.getCity());
+			donerModel.setState(donar.getState());
+			donerModel.setCountry(donar.getCountry());
+			donerModel.setZip(donar.getZip());
+			donerModel.setLatitude(donar.getDonarlatitude());
+			donerModel.setLongitude(donar.getDonarlongitude());
+			donerModel.setBloodgroup(donar.getBloodgroup());
+			donerModel.setProfileImageURL(getMessage("imageUrlPath")
+					+ donar.getProfileImageUUID());
+			donerModel.setMobilenumber(donar.getMobilenumber());
+			donerModel.setAlternatemobilenumber(donar
+					.getAlternatemobilenumber());
+			donerModel
+					.setCreateddate(""
+							+ Utilities.convertDateAndTimeFormat(donar
+									.getCreateddate()));
+
+			ArrayList<MedicalTestDTO> medicalTests = commonDAO
+					.getMedicalTest(donar.getUserid());
+			System.out.println("size--" + medicalTests.size());
+
+			for (MedicalTestDTO dto : medicalTests) {
+				DonerMedicalTests test = new DonerMedicalTests();
+				test.setComments(dto.getComments());
+				test.setMedicaltestname(dto.getMedicaltestname());
+				test.setResult(dto.getResult());
+				test.setDescription(dto.getDescription());
+				test.setTestdate(""
+						+ Utilities.convertDateAndTimeFormat(dto.getTestdate()));
+				test.setMedicaltestid(dto.getMedicaltestid());
+				medicacltests.add(test);
+
+			}
+
+			donerModel.setMedicacltests(medicacltests);
+
+			if (donar.getUserid() != userId) {
+				searchList.add(donerModel);
+			}
+
+		}
+
+		return searchList;
+
+	}
+
+	@Transactional
+	public StatusObject verifyEmail(String email) {
+		int status = commonDAO.EmailExistOrNot(email);
+		StatusObject obj = new StatusObject();
+		if (status > 0) {
+			obj.setError(true);
+			obj.setMessage(getMessage("email.already.exist"));
+			return obj;
+		} else {
+			obj.setError(false);
+			obj.setMessage(getMessage("email.doesnot.exist"));
+			return obj;
+		}
+	}
+
+	@Transactional
+	public void updateDonorRequestTableByDeletingOldRecords() {
+		System.out
+				.println("Entered into transaction................................");
+		commonDAO.updateDonorRequestTableByDeletingOldRecordsDAO();
+	}
+
+	@Transactional
+	public void notifyDonorAcceptedRequestFromUser() {
+		System.out
+				.println("notify donor accepted request from useer..............................");
+		List<NotifyUserRequestStatusModel> requestsList = commonDAO
+				.notifyDonorAcceptedRequestFromUser();
+		/*System.out.println("requestsList---" + requestsList.size());
+		for (NotifyUserRequestStatusModel list : requestsList) {
+			System.out.println("---UserID----->" + list.getDonorreqid());
+		}*/
+		
+		//
+		int userID=0;
+		for (int i = 0; i < requestsList.size(); i++) {
+			
+			NotifyUserRequestStatusModel obj=(NotifyUserRequestStatusModel)requestsList.get(i);
+			
+			if(obj.getUserId()!=userID)
+			{
+				System.out.println("===="+obj.getUserId());
+				ArrayList<NotificationDTO> devicesList = organizationDAO.getUserDeviceInfo(obj.getUserId());
+				notifcationService.sendNotificatonToUser(devicesList,obj.getBloodgroup(),obj.getDonorreqid(),Constants.USER_COMPLETE_STATUS);
+				
+				
+			}
+			userID=obj.getUserId();
+		}
+		
+		
+		
+
+	}
+
+}

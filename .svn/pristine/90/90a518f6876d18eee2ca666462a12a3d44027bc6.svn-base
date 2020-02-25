@@ -1,0 +1,508 @@
+package com.ensis.bloodgroup.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ensis.bloodgroup.dao.DonarRegistrationDAO;
+import com.ensis.bloodgroup.dao.ListOfServicesDAO;
+import com.ensis.bloodgroup.dao.common.CommonDAO;
+import com.ensis.bloodgroup.dto.DonarsDTO;
+import com.ensis.bloodgroup.dto.DonateRequestDTO;
+import com.ensis.bloodgroup.dto.MedicalTestDTO;
+import com.ensis.bloodgroup.dto.RequestedDonorsListDTO;
+import com.ensis.bloodgroup.models.AcceptedDonorsListModel;
+import com.ensis.bloodgroup.models.ChangeRequestStatusModel;
+import com.ensis.bloodgroup.models.DonerMedicalTests;
+import com.ensis.bloodgroup.models.GetBloodRequestsModel;
+import com.ensis.bloodgroup.models.SentBloodRequestsModel;
+import com.ensis.bloodgroup.models.StatusObject;
+import com.ensis.bloodgroup.utis.MessageResources;
+import com.ensis.bloodgroup.utis.Utilities;
+
+public class ListOfRequestsService extends MessageResources {
+
+	@Autowired
+	ListOfServicesDAO listOfServicesDAO;
+
+	public void setListOfServicesDAO(ListOfServicesDAO listOfServicesDAO) {
+		this.listOfServicesDAO = listOfServicesDAO;
+	}
+	
+	@Autowired
+	CommonDAO commonDAO;
+	
+	public CommonDAO getCommonDAO() {
+		return commonDAO;
+	}
+
+	/**
+	 * @param commonDAO
+	 *            the commonDAO to set
+	 */
+	public void setCommonDAO(CommonDAO commonDAO) {
+		this.commonDAO = commonDAO;
+	}
+	
+	@Autowired
+	DonarRegistrationDAO donarRegistrationDAO;
+
+	/**
+	 * @param donarRegistrationDAO
+	 *            the donarRegistrationDAO to set
+	 */
+	public void setDonarRegistrationDAO(
+			DonarRegistrationDAO donarRegistrationDAO) {
+		this.donarRegistrationDAO = donarRegistrationDAO;
+	}
+
+	@Transactional
+	public List<GetBloodRequestsModel> getListOfRequests(int donorId)
+			throws Exception {
+		List<GetBloodRequestsModel> bloodRequestObj = new ArrayList<GetBloodRequestsModel>();
+
+		List<?> list = listOfServicesDAO.getRequest(donorId);
+		for (int i = 0; i < list.size(); i++) {
+			RequestedDonorsListDTO requestObj = (RequestedDonorsListDTO) list.get(i);
+			int reqID = requestObj.getRequestid();
+			DonateRequestDTO request = listOfServicesDAO.getRequestDetails(reqID);
+			
+			
+			DonarsDTO userObject = new DonarsDTO();
+			List<?> list2 = listOfServicesDAO.getRequestedUserDetails(request.getUserId());
+			if (list2.size() > 0) {
+				userObject = (DonarsDTO) list2.get(0);
+			}
+			GetBloodRequestsModel getBloodRequestsModel = new GetBloodRequestsModel();
+			getBloodRequestsModel.setRequestid(requestObj.getRequestid());
+			getBloodRequestsModel.setUserId(requestObj
+					.getUserId());
+			// getBloodRequestsModel.setDonarid(requestObj.getDonarid());
+			getBloodRequestsModel.setRequeststatusid(requestObj
+					.getRequeststatus());
+			getBloodRequestsModel.setDonorreqid(requestObj.getDonorreqid());
+			getBloodRequestsModel.setBloodgroup(request.getBloodgroup());
+			getBloodRequestsModel.setBloodquantity(request.getBloodquantity());
+			if(request.getDatebloodrequired()!=null){
+				getBloodRequestsModel.setBloodrequireddate(""
+						+ Utilities.convertDateFormat(request
+								.getDatebloodrequired()));
+			}
+			else
+			{
+				getBloodRequestsModel.setBloodrequireddate(null);
+			}
+			
+			getBloodRequestsModel.setComments(request.getComments());
+			getBloodRequestsModel.setCreateddate(""
+					+ Utilities.convertDateFormat(request.getCreateddate()));
+			// getBloodRequestsModel.setUpdateddate(requestObj.getUpdateddate());
+			// getBloodRequestsModel.setUserid(organizationObj.getUserid());
+			
+			
+			
+			getBloodRequestsModel.setUserName(userObject.getFirstname()+" "+userObject.getLastname());
+			getBloodRequestsModel.setAddress1(userObject.getAddress1());
+			getBloodRequestsModel.setAddress2(userObject.getAddress2());
+			getBloodRequestsModel.setCity(userObject.getCity());
+			getBloodRequestsModel.setState(userObject.getState());
+			getBloodRequestsModel.setCountry(userObject.getCountry());
+			getBloodRequestsModel.setZip(userObject.getZip());
+			getBloodRequestsModel.setMobileNumber(userObject.getMobilenumber());
+			getBloodRequestsModel.setAlternateMobileNumber(userObject.getAlternatemobilenumber());
+			getBloodRequestsModel.setEmailId(donarRegistrationDAO.getUserEmailbyUserid(userObject.getUserid()));
+			getBloodRequestsModel.setProfileImageURL(getMessage("imageUrlPath")
+					+ userObject.getProfileImageUUID());
+			getBloodRequestsModel.setCurrentLatitude(userObject.getCurrentlatitude());
+			getBloodRequestsModel.setCurrentLongitude(userObject.getCurrentlongitude());
+			
+			
+			
+			
+			
+			if(request.getDatebloodrequired().compareTo(new Date())>0)
+			{
+				bloodRequestObj.add(getBloodRequestsModel);
+			}
+		}
+		return bloodRequestObj;
+	}
+
+	@Transactional
+	public StatusObject setRequestStatusFromDonorService(ChangeRequestStatusModel changeRequestStatusModel) throws Exception {
+		StatusObject statusObj = new StatusObject();
+		List<?> list = listOfServicesDAO.setRequestStatus(changeRequestStatusModel.getDonorreqId());
+		if (list.size() > 0) 
+		{
+			RequestedDonorsListDTO reqObj = (RequestedDonorsListDTO) list.get(0);
+			System.out.println(reqObj.getDonorid());
+			List<?> requestedDonorsListDTOList = listOfServicesDAO.getAcceptedRequest(reqObj.getDonorid());
+			
+				
+					System.out.println("List Is Null");
+					
+					DonateRequestDTO donateRequestDTO=(DonateRequestDTO)listOfServicesDAO.getRequestDetails(reqObj.getRequestid());
+					int requestStatus=donateRequestDTO.getRequeststatusid();
+					if((changeRequestStatusModel.getStatus()==2||changeRequestStatusModel.getStatus()==3)&&reqObj.getRequeststatus()==1)
+					{
+						if(changeRequestStatusModel.getStatus()==2)
+						{
+							if(requestedDonorsListDTOList.size()>0)
+							{
+								statusObj.setError(true);
+								statusObj.setMessage(getMessage("Already.Accepted.A.Request"));
+								return statusObj;
+							}
+							else
+							{
+								if(requestStatus!=5)
+								{
+									if(requestStatus!=2)
+									{
+										boolean response=false;
+										if(changeRequestStatusModel.getStatus()==2)
+										{
+											reqObj.setRequeststatus(changeRequestStatusModel.getStatus());
+											response = listOfServicesDAO.updateStatus(reqObj);
+										}
+										if(changeRequestStatusModel.getStatus()==3)
+										{
+											reqObj.setRequeststatus(changeRequestStatusModel.getStatus());
+											response = listOfServicesDAO.deleteRequestedDonor(reqObj);
+										}
+										String s=null;
+										
+										List<?> totalAcceptedList = listOfServicesDAO.getListOfAcceptedDonors(reqObj.getUserId(),reqObj.getRequestid());
+										if(totalAcceptedList.size()==donateRequestDTO.getBloodquantity())
+										{
+											donateRequestDTO.setRequeststatusid(2);
+											boolean responseMain = listOfServicesDAO.updateMainRequestStatus(donateRequestDTO);
+											s="ACCEPTED";
+										}
+										List<?> totalCompletedList = listOfServicesDAO.getListOfCompletedDonors(reqObj.getUserId(),reqObj.getRequestid());
+										if(totalCompletedList.size()==donateRequestDTO.getBloodquantity())
+										{
+											donateRequestDTO.setRequeststatusid(5);
+											boolean responseMain = listOfServicesDAO.updateMainRequestStatus(donateRequestDTO);
+											s="COMPLETED";
+										}
+										
+										if (response) 
+										{
+											statusObj.setError(false);
+											if(changeRequestStatusModel.getStatus()==2)
+											{
+												statusObj.setMessage(getMessage("request.status.acceptable.success"));
+											}
+											if(changeRequestStatusModel.getStatus()==3)
+											{
+												statusObj.setMessage(getMessage("request.status.rejectable.success"));
+											}
+											return statusObj;
+										} 
+										else 
+										{
+											statusObj.setError(true);
+											if(changeRequestStatusModel.getStatus()==2)
+											{
+												statusObj.setMessage(getMessage("request.status.acceptable.fail"));
+											}
+											if(changeRequestStatusModel.getStatus()==3)
+											{
+												statusObj.setMessage(getMessage("request.status.rejectable.fail"));
+											}
+											return statusObj;
+										}
+									}
+									else
+									{
+										//accepted
+										statusObj.setError(true);
+										statusObj.setMessage(getMessage("requests.all.accepted"));
+										return statusObj;
+									}
+								}
+								else
+								{
+									//completed
+									statusObj.setError(true);
+									statusObj.setMessage(getMessage("requests.all.completed"));
+									return statusObj;
+								}
+							}
+						}
+						else
+						{
+							reqObj.setRequeststatus(changeRequestStatusModel.getStatus());
+							boolean response = listOfServicesDAO.deleteRequestedDonor(reqObj);
+							String s=null;
+							
+							
+							
+							List<?> totalAcceptedList = listOfServicesDAO.getListOfAcceptedDonors(reqObj.getUserId(),reqObj.getRequestid());
+							if(totalAcceptedList.size()==donateRequestDTO.getBloodquantity())
+							{
+								donateRequestDTO.setRequeststatusid(2);
+								boolean responseMain = listOfServicesDAO.updateMainRequestStatus(donateRequestDTO);
+								s="ACCEPTED";
+							}
+							else if(totalAcceptedList.size()<donateRequestDTO.getBloodquantity())
+							{
+								donateRequestDTO.setRequeststatusid(1);
+								boolean responseMain = listOfServicesDAO.updateMainRequestStatus(donateRequestDTO);
+								s="NOT ACCEPTED";
+							}
+							List<?> totalCompletedList = listOfServicesDAO.getListOfCompletedDonors(reqObj.getUserId(),reqObj.getRequestid());
+							if(totalCompletedList.size()==donateRequestDTO.getBloodquantity())
+							{
+								donateRequestDTO.setRequeststatusid(5);
+								boolean responseMain = listOfServicesDAO.updateMainRequestStatus(donateRequestDTO);
+								s="COMPLETED";
+							}
+							
+							if (response) 
+							{
+								statusObj.setError(false);
+								statusObj.setMessage(getMessage("request.status.rejectable.success"));
+								return statusObj;
+							} 
+							else 
+							{
+								statusObj.setError(true);
+								statusObj.setMessage(getMessage("request.status.rejectable.fail"));
+								return statusObj;
+							}
+						}
+					}
+					else
+					{
+						if(reqObj.getRequeststatus()==2&&changeRequestStatusModel.getStatus()==3)
+						{
+							reqObj.setRequeststatus(changeRequestStatusModel.getStatus());
+							boolean response = listOfServicesDAO.deleteRequestedDonor(reqObj);
+							String s=null;
+							
+							
+							
+							List<?> totalAcceptedList = listOfServicesDAO.getListOfAcceptedDonors(reqObj.getUserId(),reqObj.getRequestid());
+							if(totalAcceptedList.size()==donateRequestDTO.getBloodquantity())
+							{
+								donateRequestDTO.setRequeststatusid(2);
+								boolean responseMain = listOfServicesDAO.updateMainRequestStatus(donateRequestDTO);
+								s="ACCEPTED";
+							}
+							else if(totalAcceptedList.size()<donateRequestDTO.getBloodquantity())
+							{
+								donateRequestDTO.setRequeststatusid(1);
+								boolean responseMain = listOfServicesDAO.updateMainRequestStatus(donateRequestDTO);
+								s="NOT ACCEPTED";
+							}
+							List<?> totalCompletedList = listOfServicesDAO.getListOfCompletedDonors(reqObj.getUserId(),reqObj.getRequestid());
+							if(totalCompletedList.size()==donateRequestDTO.getBloodquantity())
+							{
+								donateRequestDTO.setRequeststatusid(5);
+								boolean responseMain = listOfServicesDAO.updateMainRequestStatus(donateRequestDTO);
+								s="COMPLETED";
+							}
+							
+							if (response) 
+							{
+								statusObj.setError(false);
+								statusObj.setMessage(getMessage("request.status.rejectable.success"));
+								return statusObj;
+							} 
+							else 
+							{
+								statusObj.setError(true);
+								statusObj.setMessage(getMessage("request.status.rejectable.fail"));
+								return statusObj;
+							}
+						}
+						else
+						{
+							statusObj.setError(true);
+							statusObj.setMessage(getMessage("unable.to.proccess.your.request"));
+							return statusObj;
+						}
+					}
+				
+				
+			
+		} 
+		else 
+		{
+			statusObj.setError(true);
+			statusObj.setMessage(getMessage("request.notFound"));
+			return statusObj;
+		}
+	}
+
+	@Transactional
+	public List<AcceptedDonorsListModel> getAcceptedDonorsListService(
+			int acceptorId,int requestid) throws Exception {
+		System.out.println(acceptorId+"======"+requestid);
+		List<AcceptedDonorsListModel> bloodAcceptorsObj = new ArrayList<AcceptedDonorsListModel>();
+
+		List<?> list = listOfServicesDAO.getListOfAcceptedDonors(acceptorId,requestid);
+		for (int i = 0; i < list.size(); i++) {
+			RequestedDonorsListDTO requestObj = (RequestedDonorsListDTO) list.get(i);
+
+			int donorId = requestObj.getDonorid();
+
+			List<?> list2 = listOfServicesDAO.getacceptedDonorDetails(donorId);
+			DonarsDTO donorObj = new DonarsDTO();
+			if (list2.size() > 0) {
+				donorObj = (DonarsDTO) list2.get(0);
+			}
+			AcceptedDonorsListModel acceptedDonorsListModel = new AcceptedDonorsListModel();
+
+			acceptedDonorsListModel.setDonarid(donorObj.getUserid());
+			acceptedDonorsListModel.setFirstname(donorObj.getFirstname());
+			acceptedDonorsListModel.setLastname(donorObj.getLastname());
+			acceptedDonorsListModel.setGender(donorObj.getGender());
+			acceptedDonorsListModel.setAge(donorObj.getAge());
+			acceptedDonorsListModel.setAddress1(donorObj.getAddress1());
+			acceptedDonorsListModel.setAddress2(donorObj.getAddress2());
+			acceptedDonorsListModel.setCity(donorObj.getCity());
+			acceptedDonorsListModel.setState(donorObj.getState());
+			acceptedDonorsListModel.setCountry(donorObj.getCountry());
+			acceptedDonorsListModel.setZip(donorObj.getZip());
+			acceptedDonorsListModel.setDonarlatitude(donorObj
+					.getDonarlatitude());
+			acceptedDonorsListModel.setDonarlongitude(donorObj
+					.getDonarlongitude());
+			acceptedDonorsListModel.setCurrentlatitude(donorObj
+					.getCurrentlatitude());
+			acceptedDonorsListModel.setCurrentlongitude(donorObj
+					.getCurrentlongitude());
+			acceptedDonorsListModel.setBloodgroup(donorObj.getBloodgroup());
+			acceptedDonorsListModel.setMobilenumber(donorObj.getMobilenumber());
+			acceptedDonorsListModel.setAlternatemobilenumber(donorObj
+					.getAlternatemobilenumber());
+			acceptedDonorsListModel.setProfileImageURL(getMessage("imageUrlPath")+donorObj.getProfileImageUUID());
+			acceptedDonorsListModel
+					.setLastdonateddate(""
+							+ Utilities.convertDateFormat(donorObj
+									.getLastdonateddate()));
+			acceptedDonorsListModel.setDonorreqid(requestObj.getDonorreqid());
+			acceptedDonorsListModel.setRequestid(requestObj.getRequestid());
+			acceptedDonorsListModel.setRequeststatus(requestObj
+					.getRequeststatus());
+			
+			ArrayList<DonerMedicalTests> medicacltests = new ArrayList<DonerMedicalTests>();
+			ArrayList<MedicalTestDTO> medicalTests = commonDAO.getMedicalTest(donorObj.getUserid());
+			System.out.println("size--" + medicalTests.size());
+			for (MedicalTestDTO dto : medicalTests) {
+				DonerMedicalTests test = new DonerMedicalTests();
+				test.setComments(dto.getComments());
+				test.setMedicaltestname(dto.getMedicaltestname());
+				test.setResult(dto.getResult());
+				test.setDescription(dto.getDescription());
+				test.setTestdate(""+ Utilities.convertDateFormat(dto.getTestdate()));
+				medicacltests.add(test);
+			}
+			acceptedDonorsListModel.setMedicacltests(medicacltests);
+
+			bloodAcceptorsObj.add(acceptedDonorsListModel);
+
+		}
+		return bloodAcceptorsObj;
+	}
+	@Transactional
+	public List<SentBloodRequestsModel> getSentRequestsListService(int acceptorId) throws Exception {
+		List<SentBloodRequestsModel> list=new ArrayList<SentBloodRequestsModel>();
+		
+		List<?> list2 = listOfServicesDAO.getListOfSentRequests(acceptorId);
+		
+		for(int i=0;i<list2.size();i++)
+		{
+			DonateRequestDTO reqObj=(DonateRequestDTO)list2.get(i);
+			
+			SentBloodRequestsModel req=new SentBloodRequestsModel();
+			
+			
+			req.setAcceptedDonorsCount(listOfServicesDAO.getAcceptedDonorsCountForARequest(reqObj.getRequestid()));
+			req.setRequestid(reqObj.getRequestid());
+			req.setUserId(reqObj.getUserId());
+			req.setRequeststatusid(reqObj.getRequeststatusid());
+			req.setBloodgroup(reqObj.getBloodgroup());
+			req.setBloodquantity(reqObj.getBloodquantity());
+			req.setDatebloodrequired(""+Utilities.convertDateFormat(reqObj.getDatebloodrequired()));
+			req.setComments(reqObj.getComments());
+			req.setCreateddate(""+Utilities.convertDateFormat(reqObj.getCreateddate()));
+			
+			list.add(req);
+			
+		}
+		
+		
+		return list;
+	}
+	
+	
+	@Transactional
+	public GetBloodRequestsModel getAcceptedRequestItemService(int donorId) throws Exception {
+		List<?> requestedDonorsListDTOList= listOfServicesDAO.getAcceptedRequest(donorId);
+		GetBloodRequestsModel getBloodRequestsModel=null;
+		DonateRequestDTO request=null;
+		if(requestedDonorsListDTOList.size()>0)
+		{
+			RequestedDonorsListDTO requestedDonorsListDTO=(RequestedDonorsListDTO)requestedDonorsListDTOList.get(0);
+			request=(DonateRequestDTO)listOfServicesDAO.getRequestDetails(requestedDonorsListDTO.getRequestid());
+			
+			
+			
+			DonarsDTO userObject = new DonarsDTO();
+			List<?> list2 = listOfServicesDAO.getRequestedUserDetails(request.getUserId());
+			if (list2.size() > 0) {
+				userObject = (DonarsDTO) list2.get(0);
+			}
+			getBloodRequestsModel = new GetBloodRequestsModel();
+			getBloodRequestsModel.setRequestid(requestedDonorsListDTO.getRequestid());
+			getBloodRequestsModel.setUserId(requestedDonorsListDTO.getUserId());
+			// getBloodRequestsModel.setDonarid(requestObj.getDonarid());
+			getBloodRequestsModel.setRequeststatusid(requestedDonorsListDTO.getRequeststatus());
+			getBloodRequestsModel.setDonorreqid(requestedDonorsListDTO.getDonorreqid());
+			getBloodRequestsModel.setBloodgroup(request.getBloodgroup());
+			getBloodRequestsModel.setBloodquantity(request.getBloodquantity());
+			if(request.getDatebloodrequired()!=null){
+				getBloodRequestsModel.setBloodrequireddate(""
+						+ Utilities.convertDateFormat(request
+								.getDatebloodrequired()));
+			}
+			else
+			{
+				getBloodRequestsModel.setBloodrequireddate(null);
+			}
+			
+			getBloodRequestsModel.setComments(request.getComments());
+			getBloodRequestsModel.setCreateddate(""
+					+ Utilities.convertDateFormat(request.getCreateddate()));
+			// getBloodRequestsModel.setUpdateddate(requestObj.getUpdateddate());
+			// getBloodRequestsModel.setUserid(organizationObj.getUserid());
+			getBloodRequestsModel.setUserName(userObject.getFirstname()+" "+userObject.getLastname());
+			getBloodRequestsModel.setAddress1(userObject.getAddress1());
+			getBloodRequestsModel.setAddress2(userObject.getAddress2());
+			getBloodRequestsModel.setCity(userObject.getCity());
+			getBloodRequestsModel.setState(userObject.getState());
+			getBloodRequestsModel.setCountry(userObject.getCountry());
+			getBloodRequestsModel.setZip(userObject.getZip());
+			getBloodRequestsModel.setMobileNumber(userObject.getMobilenumber());
+			getBloodRequestsModel.setAlternateMobileNumber(userObject.getAlternatemobilenumber());
+			getBloodRequestsModel.setEmailId(donarRegistrationDAO.getUserEmailbyUserid(userObject.getUserid()));
+			getBloodRequestsModel.setProfileImageURL(getMessage("imageUrlPath")
+					+ userObject.getProfileImageUUID());
+			getBloodRequestsModel.setCurrentLatitude(userObject.getCurrentlatitude());
+			getBloodRequestsModel.setCurrentLongitude(userObject.getCurrentlongitude());
+			
+			// getBloodRequestsModel.setCreteddate(organizationObj.getCreteddate());
+			
+			
+		}
+		return getBloodRequestsModel;
+	}
+
+}
